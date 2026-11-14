@@ -60,7 +60,7 @@ Renders a document into `element` and resolves with a handle once the screen is 
 | `showProblems` | `false`          | Shows errors and warnings over the screen. Useful while building.    |
 | `now`          | live clock       | A `Date` that freezes the clock, for screenshots and tests.          |
 
-`timeZone` and `locale` apply to the whole page: with several screens on one page, the last `mount()` sets them.
+`timeZone`, `locale` and `now` belong to the screen they are given to: several screens on one page can each use their own.
 
 The handle has:
 

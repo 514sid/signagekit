@@ -49,7 +49,14 @@ export function SlideshowView({ c, data }: { c: Slideshow; data: Data }) {
 
 type Encode = (typeof import('uqr'))['encode']
 let loading: Promise<Encode> | undefined
-const loadQr = () => (loading ??= import('uqr').then((m) => m.encode))
+// A failed load is forgotten, so the next code tries again.
+const loadQr = () =>
+  (loading ??= import('uqr')
+    .then((m) => m.encode)
+    .catch((e: unknown) => {
+      loading = undefined
+      throw e
+    }))
 
 /**
  * One SVG path for all dark modules, with a four-module quiet zone. Always
@@ -73,10 +80,12 @@ export function QrView({ c, data }: { c: Qr; data: Data }) {
   useLayoutEffect(() => {
     if (!value) return
     let gone = false
-    const done = loadQr().then((encode) => {
-      const qr = encode(value, { ecc: 'M', border: 4 })
-      if (!gone) setCode({ size: qr.size, d: qrPath(qr.data) })
-    })
+    const done = loadQr()
+      .then((encode) => {
+        const qr = encode(value, { ecc: 'M', border: 4 })
+        if (!gone) setCode({ size: qr.size, d: qrPath(qr.data) })
+      })
+      .catch((e) => console.error('signagekit: QR code failed', e))
     track(done)
     return () => {
       gone = true

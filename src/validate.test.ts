@@ -174,3 +174,50 @@ describe('validate top level', () => {
     expect(r.warnings).toEqual([])
   })
 })
+
+describe('validate names like Object keys', () => {
+  test('a component type like "constructor" is reported, not a crash', () => {
+    const r = validate(base({ a: { type: 'constructor' } }, ['a']))
+    expect(r.errors[0]).toStartWith('zones.a.type: unknown component')
+  })
+
+  test('an area like "constructor" with no zone is reported', () => {
+    const r = validate(
+      base({ a: { type: 'heading', text: 'Hi' } }, ['a constructor']),
+    )
+    expect(r.warnings).toContain(
+      'layout: "constructor" has no zone, left empty',
+    )
+  })
+})
+
+describe('validate unknown nested properties', () => {
+  test('keep the alert and warn', () => {
+    const r = validate({
+      ...base({ a: { type: 'heading', text: 'Hi' } }, ['a']),
+      alert: { level: 'danger', title: 'Fire alarm', colour: 'red' },
+    })
+    expect(r.errors).toEqual([])
+    expect(r.doc!.alert).toBeDefined()
+    expect(r.warnings).toContain('alert.colour: unknown property, ignored')
+  })
+
+  test('keep the zone and warn', () => {
+    const r = validate(
+      base(
+        {
+          a: {
+            type: 'status',
+            items: [{ label: 'API', state: 'good', colour: 'red' }],
+          },
+        },
+        ['a'],
+      ),
+    )
+    expect(r.errors).toEqual([])
+    expect(r.doc!.zones.a).toBeDefined()
+    expect(r.warnings).toContain(
+      'zones.a.items[0].colour: unknown property, ignored',
+    )
+  })
+})

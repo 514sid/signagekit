@@ -5,7 +5,9 @@ const pending = new Set<Promise<unknown>>()
 
 export function track(p: Promise<unknown>): void {
   pending.add(p)
-  void p.finally(() => pending.delete(p))
+  // Both branches, so a rejection here isn't reported as unhandled.
+  const drop = () => pending.delete(p)
+  void p.then(drop, drop)
 }
 
 /** Resolves when tracked work is done, or after `timeout` ms at the latest. */

@@ -5,7 +5,7 @@
 // identity never rests on color alone: two or more series get a legend with
 // each series' latest value.
 
-import { useLayoutEffect, useRef } from 'preact/hooks'
+import { useLayoutEffect, useRef, useState } from 'preact/hooks'
 import type uPlotType from 'uplot'
 import 'uplot/dist/uPlot.min.css'
 import { items, text } from './data'
@@ -15,8 +15,14 @@ import type { Chart as ChartSpec, Data, Value } from './types'
 
 type UPlot = typeof uPlotType
 let loading: Promise<UPlot> | undefined
+// A failed load is forgotten, so the next draw tries again.
 const loadUPlot = () =>
-  (loading ??= import('uplot').then((m) => m.default as unknown as UPlot))
+  (loading ??= import('uplot')
+    .then((m) => m.default as unknown as UPlot)
+    .catch((e: unknown) => {
+      loading = undefined
+      throw e
+    }))
 
 /** Numbers, or numeric text from YAML data; anything else leaves a gap. */
 function toNumber(v: unknown): number | null {
@@ -236,10 +242,12 @@ async function draw(
   el: HTMLElement,
   c: ChartSpec,
   r: Resolved,
+  onSize: (size: string) => void,
 ): Promise<() => void> {
   const uPlot = await loadUPlot()
   const width = el.clientWidth
   const height = el.clientHeight
+  onSize(`${width}x${height}`)
   if (!width || !height) return () => {}
   const l = look(el, r)
   const plot = new uPlot(
@@ -276,25 +284,43 @@ export function Chart({ c, data }: { c: ChartSpec; data: Data }) {
   const ref = useRef<HTMLDivElement>(null)
   const r = resolveChart(c, data)
   const key = JSON.stringify([c, r])
+  // uPlot draws at a fixed size, so the chart redraws when its box changes,
+  // like after the screen rotates. `drawn` is the size of the last draw.
+  const [box, setBox] = useState('')
+  const drawn = useRef('')
 
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
     let destroy: (() => void) | undefined
     let gone = false
-    const done = draw(el, c, r).then((d) => {
-      if (gone) d()
-      else destroy = d
-    })
+    const done = draw(el, c, r, (size) => (drawn.current = size))
+      .then((d) => {
+        if (gone) d()
+        else destroy = d
+      })
+      .catch((e) => console.error('signagekit: chart failed', e))
     track(done)
     return () => {
       gone = true
       destroy?.()
     }
-  }, [key])
+  }, [key, box])
 
   const empty =
     !r.labels.length || r.series.every((s) => s.values.every((v) => v === null))
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(() => {
+      const size = `${el.clientWidth}x${el.clientHeight}`
+      if (size !== drawn.current) setBox(size)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [empty])
+
   if (empty) return <Empty text="No data" />
   return (
     <div class="c-chart">

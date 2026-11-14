@@ -1,7 +1,14 @@
 import { items, text } from './data'
 import { DASH, Empty } from './empty'
-import { formatValue, StateIcon, stateText } from './stat'
-import { formatClock, formatClockIn, minutesOfDay, useMinute } from './time'
+import { StateIcon, stateText } from './stat'
+import {
+  formatClock,
+  formatClockIn,
+  minutesOfDay,
+  useMinute,
+  useTimeOptions,
+  type TimeOptions,
+} from './time'
 import type { Clocks, Data, Queue, Schedule, Status, Value } from './types'
 
 type Row = Record<string, Value | undefined>
@@ -54,26 +61,31 @@ export interface Entry {
 
 /**
  * Entries from the current one onward. An entry ends at its `end`, else when
- * the next one starts, else an hour after it starts.
+ * the next later entry of the same kind starts, else an hour after it starts.
  */
 export function upcoming(
   raw: unknown[],
   data: Data,
   now: Date,
   limit: number,
+  time: TimeOptions = {},
 ): Entry[] {
-  const nowFor = { day: minutesOfDay(now), abs: now.getTime() }
+  const nowFor = { day: minutesOfDay(now, time), abs: now.getTime() }
   const hour = { day: 60, abs: 3_600_000 }
   const list = raw
     .map((x) => (x ?? {}) as Row)
     .map((r) => ({ r, start: when(text(r.start, data)) }))
     .filter((e) => e.start !== null)
     .sort((a, b) => a.start!.at - b.start!.at)
-  const live = list.filter((e, i) => {
+  const live = list.filter((e) => {
     const s = e.start!
+    // Entries that share a start run side by side, and minutes of the day
+    // never compare with a full date, so only a later start of the same kind
+    // ends this one.
     const end =
       when(text(e.r.end, data))?.at ??
-      list[i + 1]?.start?.at ??
+      list.find((x) => x.start!.kind === s.kind && x.start!.at > s.at)?.start!
+        .at ??
       s.at + hour[s.kind]
     return end > nowFor[s.kind]
   })
@@ -93,15 +105,16 @@ export function upcoming(
 }
 
 /** Shows "HH:MM" as written and a full date and time as a clock time. */
-function shortTime(s: string): string {
+function shortTime(s: string, time: TimeOptions): string {
   if (HHMM.test(s.trim())) return s.trim()
   const t = Date.parse(s)
-  return Number.isNaN(t) ? s : formatClock(new Date(t), undefined)
+  return Number.isNaN(t) ? s : formatClock(new Date(t), undefined, time)
 }
 
 export function ScheduleView({ c, data }: { c: Schedule; data: Data }) {
   const now = useMinute()
-  const rows = upcoming(items(c.items, data), data, now, c.rows ?? 5)
+  const time = useTimeOptions()
+  const rows = upcoming(items(c.items, data), data, now, c.rows ?? 5, time)
   return (
     <ol class="c-schedule" data-fit="wrap" data-kind="schedule">
       {rows.length === 0 && (
@@ -111,7 +124,7 @@ export function ScheduleView({ c, data }: { c: Schedule; data: Data }) {
         const tag = r.tag
         return (
           <li key={i} class={tag ? `is-${tag}` : ''}>
-            <span class="c-schedule-time">{shortTime(r.start)}</span>
+            <span class="c-schedule-time">{shortTime(r.start, time)}</span>
             <span class="c-schedule-what">
               <span class="c-schedule-title">{r.title}</span>
               {r.detail && <span class="c-schedule-detail">{r.detail}</span>}
@@ -134,7 +147,8 @@ export function QueueView({ c, data }: { c: Queue; data: Data }) {
     <div class="c-queue" data-fit="wrap" data-kind="queue">
       <div class="c-stat-label">{text(c.label, data) || 'Now serving'}</div>
       <div class="c-queue-current">
-        {formatValue(text(c.current, data), 'full') || DASH}
+        {/* A ticket is a code: "042" keeps its zero and gets no separators. */}
+        {text(c.current, data) || DASH}
       </div>
       {recent.length > 0 && (
         <div class="c-queue-recent">
@@ -149,13 +163,14 @@ export function QueueView({ c, data }: { c: Queue; data: Data }) {
 
 export function ClocksView({ c, data }: { c: Clocks; data: Data }) {
   const now = useMinute()
+  const time = useTimeOptions()
   return (
     <ul class="c-clocks" data-fit="wrap" data-kind="clocks">
       {c.zones.map((z, i) => (
         <li key={i}>
           <span class="c-clocks-label">{text(z.label, data)}</span>
           <span class="c-clocks-time">
-            {formatClockIn(now, z.timezone ?? z.zone ?? 'UTC', c.hour12)}
+            {formatClockIn(now, z.timezone ?? z.zone ?? 'UTC', c.hour12, time)}
           </span>
         </li>
       ))}

@@ -1,3 +1,4 @@
+import { has } from './checks'
 import { items, text } from './data'
 import { DASH } from './empty'
 import type {
@@ -19,7 +20,7 @@ export const STATE_WORDS: Record<string, string> = {
 /** good, warning or danger; anything else, unknown included, is neutral. */
 export function stateText(v: Value | undefined, data: Data): string {
   const s = v === undefined ? '' : text(v, data)
-  return s in STATE_WORDS ? s : 'neutral'
+  return has(STATE_WORDS, s) ? s : 'neutral'
 }
 
 /**
@@ -101,7 +102,7 @@ export function trendOf(
   data: Data,
 ): { dir: string; tone: string } | null {
   const dir = c.trend === undefined ? '' : text(c.trend, data)
-  if (!(dir in ARROWS)) return null
+  if (!has(ARROWS, dir)) return null
   const tone =
     !c.good_when || dir === 'flat'
       ? 'neutral'
@@ -140,6 +141,8 @@ const compact = new Intl.NumberFormat(undefined, {
 export function formatValue(raw: string, format?: 'compact' | 'full'): string {
   const plain = raw.replace(/,/g, '').trim()
   if (plain === '' || !/^-?\d+(\.\d+)?$/.test(plain)) return raw
+  // A leading zero means a code, like a ticket "042", not an amount.
+  if (/^-?0\d/.test(plain)) return raw
   const n = Number(plain)
   if (format !== 'full' && Math.abs(n) >= 10_000) return compact.format(n)
   return raw.includes(',')

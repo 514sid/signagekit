@@ -1,5 +1,18 @@
 export type Obj = Record<string, unknown>
-export type Check = (v: unknown, at: string, errs: string[]) => void
+/**
+ * Pushes problems that drop the part to `errs`. Problems the part renders
+ * through, like an unknown property, go to `warns` when the caller passes it.
+ */
+export type Check = (
+  v: unknown,
+  at: string,
+  errs: string[],
+  warns?: string[],
+) => void
+
+/** Own keys only, so a name like "constructor" never matches Object's. */
+export const has = (o: object, k: string): boolean =>
+  Object.prototype.hasOwnProperty.call(o, k)
 
 export const isObj = (v: unknown): v is Obj =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
@@ -43,11 +56,11 @@ export const seconds: Check = (v, at, errs) => {
 }
 export const list =
   (item: Check): Check =>
-  (v, at, errs) => {
+  (v, at, errs, warns) => {
     if (isBind(v)) return
     if (!Array.isArray(v))
       return void errs.push(`${at}: expected an array or {"bind": "/path"}`)
-    v.forEach((x, i) => item(x, `${at}[${i}]`, errs))
+    v.forEach((x, i) => item(x, `${at}[${i}]`, errs, warns))
   }
 export const strings: Check = (v, at, errs) => {
   if (!Array.isArray(v) || v.some((x) => typeof x !== 'string'))
@@ -90,19 +103,21 @@ export const shape =
     required: Record<string, Check>,
     optional: Record<string, Check> = {},
   ): Check =>
-  (v, at, errs) => {
+  (v, at, errs, warns) => {
     if (!isObj(v)) {
       const keys = Object.keys(required).join(', ')
       return void errs.push(`${at}: expected an object with ${keys}`)
     }
     for (const [k, check] of Object.entries(required)) {
-      if (!(k in v)) errs.push(`${at}.${k}: required`)
-      else check(v[k], `${at}.${k}`, errs)
+      if (!has(v, k)) errs.push(`${at}.${k}: required`)
+      else check(v[k], `${at}.${k}`, errs, warns)
     }
+    // An unknown property is skipped, not fatal: a typo in an optional field
+    // must never drop a whole alert or zone.
     for (const [k, x] of Object.entries(v)) {
-      if (k in required) continue
-      if (optional[k]) optional[k](x, `${at}.${k}`, errs)
-      else errs.push(`${at}.${k}: unknown property`)
+      if (has(required, k)) continue
+      if (has(optional, k)) optional[k](x, `${at}.${k}`, errs, warns)
+      else (warns ?? errs).push(`${at}.${k}: unknown property, ignored`)
     }
   }
 
@@ -115,10 +130,10 @@ export const part = shape(
 /** A list of at most `max` items, or a binding. */
 export const capped =
   (item: Check, max: number): Check =>
-  (v, at, errs) => {
+  (v, at, errs, warns) => {
     if (Array.isArray(v) && v.length > max)
       return void errs.push(`${at}: at most ${max} items`)
-    list(item)(v, at, errs)
+    list(item)(v, at, errs, warns)
   }
 
 /** An IANA time zone the screen's browser knows, like "Europe/London". */
@@ -150,16 +165,21 @@ export const thresholds = shape({}, { warning: anyNumber, danger: anyNumber })
 export const finite = anyNumber
 
 /** A clock entry: label and timezone (`zone` is the older name). */
-export const clockZone: Check = (v, at, errs) => {
+export const clockZone: Check = (v, at, errs, warns) => {
   if (isObj(v) && 'zone' in v && !('timezone' in v)) {
     // Report problems under the key the author wrote.
     const { zone, ...rest } = v
     const own: string[] = []
-    shape({ label: value, timezone })({ ...rest, timezone: zone }, at, own)
+    shape({ label: value, timezone })(
+      { ...rest, timezone: zone },
+      at,
+      own,
+      warns,
+    )
     errs.push(...own.map((e) => e.replace(`${at}.timezone`, `${at}.zone`)))
     return
   }
-  shape({ label: value, timezone })(v, at, errs)
+  shape({ label: value, timezone })(v, at, errs, warns)
 }
 
 /** Relative widths, one positive number per column. */

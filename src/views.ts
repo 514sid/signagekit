@@ -36,10 +36,18 @@ export const loadedView = (t: LazyType) => loaded.get(t)
 export function loadView(t: LazyType): Promise<AnyView> {
   let p = loading.get(t)
   if (!p) {
-    p = (LOADERS[t] as Loader)().then((v) => {
-      loaded.set(t, v)
-      return v
-    })
+    // A failed fetch is forgotten, so the next call tries again instead of
+    // getting the same rejection for as long as the page stays open.
+    p = (LOADERS[t] as Loader)().then(
+      (v) => {
+        loaded.set(t, v)
+        return v
+      },
+      (e: unknown) => {
+        loading.delete(t)
+        throw e
+      },
+    )
     loading.set(t, p)
   }
   return p

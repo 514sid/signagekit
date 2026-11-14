@@ -131,9 +131,9 @@ export function MetersView({ c, data }: { c: Meters; data: Data }) {
 export function BarsView({ c, data }: { c: Bars; data: Data }) {
   const unit = text(c.unit, data)
   const rows = amounts(c.items, data)
+    .filter((r) => r.label || r.shown)
     .sort((a, b) => b.value - a.value)
     .slice(0, c.limit ?? 12)
-    .filter((r) => r.label || r.shown)
   if (!rows.length) return <Empty />
   const top = Math.max(0, ...rows.map((r) => r.value))
   return (
