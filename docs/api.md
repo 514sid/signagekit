@@ -22,12 +22,12 @@ Without a bundler, load it as a module with an import map. The YAML parser, uPlo
 ```html
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.1.0/dist/style.css"
+  href="https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.0.1/dist/style.css"
 />
 <script type="importmap">
   {
     "imports": {
-      "@514sid/signagekit": "https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.1.0/dist/index.js",
+      "@514sid/signagekit": "https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.0.1/dist/index.js",
       "preact": "https://cdn.jsdelivr.net/npm/preact@10.27.2/dist/preact.module.js",
       "preact/hooks": "https://cdn.jsdelivr.net/npm/preact@10.27.2/hooks/dist/hooks.module.js",
       "preact/jsx-runtime": "https://cdn.jsdelivr.net/npm/preact@10.27.2/jsx-runtime/dist/jsxRuntime.module.js",

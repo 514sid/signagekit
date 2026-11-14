@@ -1,6 +1,6 @@
 {
   "name": "@514sid/signagekit",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "A toolkit for AI agents that build digital signage screens: dashboards, menus, schedules and alerts as JSON or YAML templates, laid out for any display.",
   "keywords": [
     "ai",
