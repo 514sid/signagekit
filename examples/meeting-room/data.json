@@ -1,0 +1,19 @@
+{
+  "room": {
+    "name": "Ada Lovelace",
+    "floor": "Floor 3, east wing",
+    "book_url": "https://rooms.northwind.example/r/ada-lovelace"
+  },
+  "status": {
+    "text": "In use",
+    "label": "Busy until 15:00",
+    "state": "danger",
+    "ends_at": "2026-11-14T15:00:00Z"
+  },
+  "agenda": [
+    { "start": "13:00", "end": "15:00", "title": "Pricing review", "detail": "Organiser: M. Oyelaran" },
+    { "start": "15:00", "end": "15:30", "title": "Interview debrief" },
+    { "start": "15:30", "end": "16:30", "title": "Sprint planning, Payments squad", "detail": "Organiser: J. Whitcombe-Tarasova" },
+    { "start": "17:00", "end": "17:30", "title": "1:1 Priya / Daniel" }
+  ]
+}

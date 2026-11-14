@@ -1,0 +1,18 @@
+offer:
+  headline: Buy any two Northfield own-label snack multipacks and take the canvas tote home free while stocks last
+  ends: '2026-11-22T21:00:00Z'
+promo:
+  images:
+    - /examples/images/snacks.svg
+    - /examples/images/tote.svg
+    - /examples/images/hamper.svg
+featured:
+  src: /examples/images/kettle.svg
+join:
+  url: https://example.com/club
+ticker:
+  - Loyalty points are doubled every Thursday
+  - Returns accepted for 60 days with a receipt
+  - The bakery counter opens at 06:30 on weekdays
+  - ''
+  - Parking after 16:00 is free for members

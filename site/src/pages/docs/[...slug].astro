@@ -1,0 +1,35 @@
+---
+import { getCollection, render } from 'astro:content'
+import Docs from '../../layouts/Docs.astro'
+import { DOCS } from '../../lib/docs'
+
+export async function getStaticPaths() {
+  const entries = await getCollection('docs')
+  return DOCS.filter((page) => !page.source).map((page) => {
+    const entry = entries.find((e) => e.id === page.id)
+    if (!entry) throw new Error(`docs/${page.id}.md is missing`)
+    const slug = page.path.replace(/^\/docs\/?|\/$/g, '') || undefined
+    return { params: { slug }, props: { page, entry } }
+  })
+}
+
+const { page, entry } = Astro.props
+const { Content, headings } = await render(entry)
+const sections = headings.filter((h) => h.depth === 2)
+const intro = (entry.body ?? '')
+  .split('\n\n')
+  .find((p) => p && !p.startsWith('#') && !p.startsWith('`'))
+  ?.replace(/[`*_[\]]|\(.*?\)/g, '')
+  .slice(0, 160)
+---
+
+<Docs
+  page={page}
+  description={intro ?? `signagekit docs: ${page.title}`}
+  sections={sections}
+  source={`docs/${page.id}.md`}
+>
+  <article class="prose max-w-[46rem] prose-headings:tracking-tight prose-h1:text-4xl prose-h1:font-bold prose-h2:mt-14 prose-h2:border-t prose-h2:border-line prose-h2:pt-8 prose-pre:rounded-lg prose-th:text-left">
+    <Content />
+  </article>
+</Docs>

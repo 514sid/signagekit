@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# Elm Park Surgery waiting room. Light scheme for a bright room, ticket
+# numbers only so no patient names are on the wall.
+colors:
+  scheme: light
+  accent: '#0f766e'
+
+layout:
+  design: landscape
+  flow:
+    - { zone: head, span: 8, height: 170px }
+    - { zone: clock, span: 4, height: 170px }
+    - { zone: serving, span: 5, height: 4 }
+    - { zone: clinics, span: 7, height: 4 }
+    - { zone: ticker, height: 110px }
+
+zones:
+  head: { type: heading, text: Elm Park Surgery, icon: medical }
+  clock: { type: clock, surface: raised, hour12: false, show_date: true }
+  serving:
+    type: stack
+    items:
+      - type: queue
+        weight: 4
+        label: Now calling
+        current: { bind: /current }
+        recent: { bind: /recent }
+      - type: stat
+        weight: 2
+        title: Average wait
+        value: { bind: /wait }
+        unit: min
+        thresholds: { warning: 20, danger: 40 }
+  clinics:
+    type: schedule
+    title: Clinics today
+    rows: 5
+    items: { bind: /clinics }
+  ticker:
+    type: cycle
+    surface: accent
+    seconds: 8
+    items: { bind: /messages }

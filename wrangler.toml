@@ -1,0 +1,4 @@
+# Cloudflare Pages project for the docs site. Build with `bun run site:build`.
+name = "signagekit"
+pages_build_output_dir = "site/dist"
+compatibility_date = "2026-11-01"

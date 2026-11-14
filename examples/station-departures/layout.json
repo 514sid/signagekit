@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "colors": { "scheme": "dark", "accent": "#facc15", "on_accent": "#111827" },
+  "alert": { "bind": "/alert" },
+  "layout": {
+    "design": "landscape",
+    "gap": 2,
+    "flow": [
+      { "zone": "head", "span": 8, "height": "160px" },
+      { "zone": "clock", "span": 4, "height": "160px" },
+      { "zone": "board", "height": 6 },
+      { "zone": "foot", "height": "110px" }
+    ]
+  },
+  "zones": {
+    "head": { "type": "heading", "text": "Departures, platforms 4 to 7", "icon": "location" },
+    "clock": { "type": "clock", "surface": "accent", "hour12": false },
+    "board": {
+      "type": "table",
+      "columns": ["Time", "To", "Plat.", "Status"],
+      "align": ["start", "start", "end", "end"],
+      "widths": [1.2, 4, 1, 2.2],
+      "page_rows": 8,
+      "seconds": 10,
+      "rows": { "bind": "/departures" }
+    },
+    "foot": {
+      "type": "cycle",
+      "surface": "raised",
+      "seconds": 8,
+      "items": { "bind": "/messages" }
+    }
+  }
+}

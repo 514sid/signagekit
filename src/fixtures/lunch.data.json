@@ -1,0 +1,17 @@
+{
+  "menu": [
+    ["Tomato soup", "VG", "4.50"],
+    ["Chicken curry", "GF", "8.90"],
+    ["Mushroom risotto", "V", "8.20"],
+    ["Fish and chips", "", "9.50"],
+    ["Falafel wrap", "VG", "6.80"]
+  ],
+  "wait": 6,
+  "seats": 42,
+  "notices": ["Fire drill Thursday at 10:00", "New vegan station opens Monday"],
+  "messages": [
+    "Coffee bar open until 16:00",
+    "Card payments only after 14:00",
+    "Reusable cups get 20p off"
+  ]
+}

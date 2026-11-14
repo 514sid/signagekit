@@ -1,0 +1,6 @@
+{
+  "name": "signagekit-site",
+  "private": true,
+  "type": "module",
+  "sideEffects": true
+}

@@ -1,0 +1,50 @@
+{
+  "colors": { "scheme": "dark", "accent": "#a3e635", "on_accent": "#111827" },
+  "layout": {
+    "design": "landscape",
+    "flow": [
+      { "zone": "head", "span": 9, "height": "120px" },
+      { "zone": "clock", "span": 3, "height": "120px" },
+      { "zone": "dock", "span": 4, "height": 3 },
+      { "zone": "shipments", "span": 8, "height": 3 },
+      { "zone": "picks", "span": 5, "height": 2 },
+      { "zone": "forklifts", "span": 7, "height": 2 }
+    ]
+  },
+  "zones": {
+    "head": { "type": "heading", "text": { "bind": "/site" } },
+    "clock": { "type": "clock", "surface": "raised" },
+    "dock": {
+      "type": "queue",
+      "title": "Dock call-up",
+      "label": "Door 4 loading",
+      "current": { "bind": "/dock/current" },
+      "recent": { "bind": "/dock/recent" }
+    },
+    "shipments": {
+      "type": "table",
+      "title": "Outbound trucks",
+      "columns": ["Carrier", "Destination", "Door", "ETD"],
+      "align": ["start", "start", "center", "end"],
+      "rows": { "bind": "/trucks" },
+      "page_rows": 5,
+      "seconds": 8
+    },
+    "picks": {
+      "type": "stat",
+      "title": "Picks today",
+      "value": { "bind": "/picks" },
+      "format": "full",
+      "trend": "up",
+      "delta": "+9%",
+      "good_when": "up"
+    },
+    "forklifts": {
+      "type": "meters",
+      "title": "Forklift battery",
+      "unit": "%",
+      "thresholds": { "warning": 30, "danger": 15 },
+      "items": { "bind": "/forklifts" }
+    }
+  }
+}

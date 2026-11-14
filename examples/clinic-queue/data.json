@@ -1,0 +1,17 @@
+{
+  "current": "B 047",
+  "recent": ["A 112", "B 046", "A 111", "B 045"],
+  "wait": 18,
+  "clinics": [
+    { "start": "10:00", "end": "12:00", "title": "Diabetes review", "detail": "Room 4, Nurse Hughes" },
+    { "start": "12:00", "end": "14:00", "title": "Walk-in minor illness", "detail": "Room 1, Dr Okafor" },
+    { "start": "14:00", "end": "16:00", "title": "Child immunisations", "detail": "Room 3, Nurse Patel" },
+    { "start": "16:00", "end": "17:30", "title": "Flu jab drop-in", "detail": "Room 4, Nurse Hughes" },
+    { "start": "17:30", "end": "18:00", "title": "Prescription pick-up", "detail": "Reception" }
+  ],
+  "messages": [
+    "Please keep your ticket until called",
+    "Masks available at reception",
+    "Flu jab drop-in 16:00 to 17:30 today"
+  ]
+}

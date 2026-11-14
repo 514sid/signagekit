@@ -1,0 +1,63 @@
+---
+import { Code } from 'astro:components'
+import { parse } from 'yaml'
+import Docs from '../../layouts/Docs.astro'
+import { DOCS } from '../../lib/docs'
+import { SAMPLES } from '../../lib/components'
+import { DEMO_NOW } from '../../lib/examples'
+
+const page = DOCS.find((d) => d.id === 'components')!
+const samples = SAMPLES.map((s) => ({
+  ...s,
+  // A one-zone screen around the sample, as mount() takes it.
+  doc: JSON.stringify({ version: 1, layout: { areas: ['a'] }, zones: { a: parse(s.yaml) } }),
+}))
+const link = 'text-accent underline underline-offset-2 hover:text-accent-hover'
+---
+
+<Docs
+  page={page}
+  description="Every signagekit component, drawn live, with the YAML that makes it."
+  sections={samples.map((s) => ({ slug: s.type, text: s.type }))}
+  source={page.source!}
+>
+  <div class="max-w-[46rem]">
+    <h1 class="text-4xl font-bold tracking-tight">Components</h1>
+    <p class="mt-6 text-lg leading-relaxed text-muted">
+      Each component below is drawn live from the YAML under it, as one zone of a screen. Every component also takes
+      <code class="rounded border border-line bg-soft px-1 font-mono text-[0.875em] text-fg">title</code>,
+      <code class="rounded border border-line bg-soft px-1 font-mono text-[0.875em] text-fg">icon</code>,
+      <code class="rounded border border-line bg-soft px-1 font-mono text-[0.875em] text-fg">surface</code>,
+      <code class="rounded border border-line bg-soft px-1 font-mono text-[0.875em] text-fg">size</code> and
+      <code class="rounded border border-line bg-soft px-1 font-mono text-[0.875em] text-fg">weight</code>, and any value can be a bind to the data.
+      The <a class={link} href="/docs/format/#components">document format</a> describes them all.
+    </p>
+
+    {
+      samples.map((s) => (
+        <section aria-labelledby={s.type} class="mt-14 border-t border-line pt-8">
+          <h2 id={s.type} class="scroll-mt-20 font-mono text-2xl font-semibold tracking-tight">
+            <a href={`#${s.type}`} class="text-fg hover:underline">
+              {s.type}
+            </a>
+          </h2>
+          <p class="mt-2 text-muted">{s.description}</p>
+          <div
+            class="component-frame relative mt-5 w-full overflow-hidden rounded-lg border border-line bg-soft"
+            style={`aspect-ratio: ${s.aspect}`}
+            data-doc={s.doc}
+            data-now={DEMO_NOW}
+            role="img"
+            aria-label={`A ${s.type} component drawn from the YAML below`}
+          />
+          <div class="mt-4 [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-line [&_pre]:p-4 [&_pre]:text-sm">
+            <Code code={s.yaml} lang="yaml" themes={{ light: 'github-light', dark: 'github-dark' }} />
+          </div>
+        </section>
+      ))
+    }
+  </div>
+  <script>
+    import '../../scripts/components.ts'
+  </script>
+</Docs>

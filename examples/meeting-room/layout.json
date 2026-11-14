@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "colors": {
+    "scheme": "dark",
+    "accent": "#f59e0b"
+  },
+  "layout": {
+    "design": "portrait",
+    "flow": [
+      {
+        "zone": "room",
+        "span": 8,
+        "height": "200px"
+      },
+      {
+        "zone": "clock",
+        "span": 4,
+        "height": "200px"
+      },
+      {
+        "zone": "status",
+        "span": 12,
+        "height": 2
+      },
+      {
+        "zone": "ends",
+        "span": 6,
+        "height": 1.2
+      },
+      {
+        "zone": "book",
+        "span": 6,
+        "height": 1.2
+      },
+      {
+        "zone": "agenda",
+        "span": 12,
+        "height": 4
+      },
+      {
+        "zone": "rules",
+        "span": 12,
+        "height": "150px"
+      }
+    ]
+  },
+  "zones": {
+    "room": {
+      "type": "heading",
+      "title": "Meeting room",
+      "text": {
+        "bind": "/room/name"
+      }
+    },
+    "clock": {
+      "type": "clock",
+      "surface": "raised",
+      "hour12": false
+    },
+    "status": {
+      "type": "stat",
+      "title": {
+        "bind": "/room/floor"
+      },
+      "value": {
+        "bind": "/status/text"
+      },
+      "label": {
+        "bind": "/status/label"
+      },
+      "state": {
+        "bind": "/status/state"
+      }
+    },
+    "ends": {
+      "type": "countdown",
+      "surface": "raised",
+      "title": "Current meeting",
+      "to": {
+        "bind": "/status/ends_at"
+      },
+      "label": "left"
+    },
+    "book": {
+      "type": "qr",
+      "title": "Book this room",
+      "value": {
+        "bind": "/room/book_url"
+      },
+      "label": "Scan to book"
+    },
+    "agenda": {
+      "type": "schedule",
+      "title": "Next up",
+      "rows": 6,
+      "items": {
+        "bind": "/agenda"
+      }
+    },
+    "rules": {
+      "type": "text",
+      "surface": "accent",
+      "text": "Seats 10. Please wipe the whiteboard and take your cups when you leave.",
+      "fit": true
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "strict": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "types": ["bun", "vite/client", "astro/client"],
+    "paths": { "@514sid/signagekit": ["./src/index.ts"] }
+  },
+  "include": ["src", "stories", "scripts", ".storybook", "bin", "site"],
+  "exclude": ["site/dist", "site/.astro"]
+}

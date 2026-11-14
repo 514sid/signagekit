@@ -1,0 +1,1331 @@
+/*
+ * Everything is scoped to the canvas mount() creates, so a
+ * page can host a screen next to its own content.
+ *
+ * Full-bleed design: zones run to the screen edges and touch each other. The
+ * grid's own background shows through a 2px gap as a hairline rule, so there
+ * are no cards, corners or margins taking space from content.
+ *
+ * Kept cheap for low-end devices: system fonts, no shadows, blur or filters,
+ * and every zone is a contained box so a change in one zone never lays out
+ * the others. Sizes are px at the 1920x1080 reference.
+ */
+
+.signagekit-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+}
+
+/* The scope every rule below lives in: nothing here styles the host page,
+   and nothing the host page inherits reaches the screen's text fitting. */
+.signagekit {
+  background: var(--background);
+  color: var(--text);
+  user-select: none;
+  font:
+    16px/normal system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  letter-spacing: normal;
+  word-spacing: normal;
+  text-align: start;
+  text-indent: 0;
+  text-transform: none;
+  white-space: normal;
+}
+
+/* Host pages often reset elements (Tailwind's Preflight, CSS resets). Inside
+   a screen, elements keep the browser defaults the screen is designed with.
+   :where() keeps these at the lowest specificity, so component rules win. */
+
+.signagekit :where(svg, img, video, canvas) {
+  display: inline;
+  vertical-align: baseline;
+  max-width: none;
+}
+
+.signagekit :where(h1, h2, h3, th) {
+  font-size: inherit;
+  font-weight: 700;
+}
+
+.signagekit :where(strong, b) {
+  font-weight: bolder;
+}
+
+/* Reset and type, scoped to the screen so host pages keep their own. */
+
+.signagekit .grid,
+.signagekit .grid *,
+.signagekit .alert,
+.signagekit .alert * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.signagekit .grid,
+.signagekit .alert {
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+.signagekit .grid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  background: var(--line);
+}
+
+/* Layout is isolated per zone, which is what keeps re-layout cheap. Paint is
+   not contained, so a state strip can run across the rule to its right. */
+.signagekit .zone {
+  contain: size layout style;
+  min-width: 0;
+  min-height: 0;
+}
+
+.signagekit .cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 40px 48px;
+}
+
+.signagekit .body {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.signagekit .s-base {
+  background: var(--background);
+}
+
+.signagekit .s-raised {
+  background: var(--surface);
+}
+
+.signagekit .s-accent {
+  background: var(--accent);
+  color: var(--on-accent);
+  --muted: var(--on-accent);
+  --line: var(--on-accent);
+}
+
+.signagekit .title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  color: var(--muted);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.signagekit .title::before {
+  content: '';
+  flex: none;
+  width: 12px;
+  height: 12px;
+  background: var(--accent);
+}
+
+.signagekit .s-accent .title::before {
+  background: var(--on-accent);
+}
+
+/* Stacks, images and slideshows run edge to edge; their titles keep the
+   cell inset. */
+
+.signagekit .k-stack,
+.signagekit .k-image,
+.signagekit .k-slideshow {
+  padding: 0;
+}
+
+.signagekit .k-stack > .title,
+.signagekit .k-image > .title,
+.signagekit .k-slideshow > .title {
+  margin: 40px 48px 24px;
+}
+
+.signagekit .c-stack {
+  display: flex;
+  gap: var(--gap, 2px);
+  width: 100%;
+  height: 100%;
+  background: var(--line);
+}
+
+.signagekit .d-column {
+  flex-direction: column;
+}
+
+.signagekit .d-row {
+  flex-direction: row;
+}
+
+.signagekit .c-stack > .cell {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.signagekit .a-start {
+  text-align: start;
+}
+
+.signagekit .a-center {
+  text-align: center;
+}
+
+.signagekit .a-end {
+  text-align: end;
+}
+
+/* Fitted components set font-size on their root and size children in em. */
+
+.signagekit .c-heading {
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+
+.signagekit .c-text {
+  line-height: 1.35;
+  white-space: pre-line;
+}
+
+.signagekit .c-stat,
+.signagekit .c-clock,
+.signagekit .c-table,
+.signagekit .c-cycle {
+  white-space: nowrap;
+}
+
+/* Content-width boxes, so one-line fitting can measure the text itself. */
+.signagekit .c-stat,
+.signagekit .c-clock,
+.signagekit .c-cycle {
+  width: max-content;
+}
+
+.signagekit .c-stat-value {
+  font-size: 2.6em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .c-stat-unit {
+  /* 40% of the value, but never under 36 px or over the value itself, so a
+     small value's unit stays readable. */
+  font-size: max(0.4em, min(1em, 36px));
+  font-weight: 500;
+  letter-spacing: 0;
+  margin-inline-start: 0.4em;
+  color: var(--muted);
+}
+
+.signagekit .c-stat-label {
+  margin-top: 0.5em;
+  color: var(--muted);
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.signagekit .state-good {
+  --state: var(--good);
+  --on-state: var(--on-good);
+}
+
+.signagekit .state-warning {
+  --state: var(--warning);
+  --on-state: var(--on-warning);
+}
+
+.signagekit .state-danger {
+  --state: var(--danger);
+  --on-state: var(--on-danger);
+}
+
+/* Drawn over the cell, so zones with and without a state line up. */
+.signagekit .state-good::before,
+.signagekit .state-warning::before,
+.signagekit .state-danger::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Covers the rule on the right, so strips of neighbouring zones touch. */
+  right: calc(-1 * var(--gap, 2px));
+  height: 10px;
+  background: var(--state);
+}
+
+/* In short zones the state runs down the left edge instead of the top. */
+.signagekit .cell[data-density='compact']::before,
+.signagekit .cell[data-density='strip']::before {
+  right: auto;
+  bottom: 0;
+  width: 8px;
+  height: auto;
+}
+
+/* Title icons replace the square marker. The state icon joins the title only
+   in short zones, where the label under a value may not fit. */
+.signagekit .title.has-icon::before,
+.signagekit .cell[data-density='compact'] > .title.has-state::before,
+.signagekit .cell[data-density='strip'] > .title.has-state::before {
+  display: none;
+}
+
+.signagekit .title-icon {
+  flex: none;
+  width: 1.3em;
+  height: 1.3em;
+  color: var(--accent);
+}
+
+.signagekit .s-accent .title-icon {
+  color: var(--on-accent);
+}
+
+.signagekit .title-state {
+  display: none;
+}
+
+.signagekit .cell[data-density='compact'] > .title > .title-state,
+.signagekit .cell[data-density='strip'] > .title > .title-state {
+  display: flex;
+}
+
+.signagekit .title-state .c-state-icon {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.signagekit .c-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+/* Short zones have no room for a label under the value: it sits beside it,
+   and the sparkline is left out. */
+.signagekit .cell[data-density='compact'] .c-stat,
+.signagekit .cell[data-density='strip'] .c-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0 0.8em;
+}
+
+.signagekit .cell[data-density='compact'] .c-stat-label,
+.signagekit .cell[data-density='strip'] .c-stat-label {
+  margin-top: 0;
+}
+
+/* Unless the label beside the value doesn't fit: then it goes under. */
+.signagekit .cell[data-density='compact'] .c-stat.label-under {
+  display: block;
+}
+
+.signagekit .cell[data-density='compact'] .c-stat.label-under .c-stat-label {
+  margin-top: 0.3em;
+}
+
+.signagekit .cell[data-density='compact'] .c-spark,
+.signagekit .cell[data-density='strip'] .c-spark {
+  display: none;
+}
+
+.signagekit .c-state-icon {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+}
+
+/* Each icon carries its own colors, so it works outside a zone with a state
+   too, like in status and meter rows. */
+.signagekit .c-state-icon.is-good {
+  --state: var(--good);
+  --on-state: var(--on-good);
+}
+
+.signagekit .c-state-icon.is-warning {
+  --state: var(--warning);
+  --on-state: var(--on-warning);
+}
+
+.signagekit .c-state-icon.is-danger {
+  --state: var(--danger);
+  --on-state: var(--on-danger);
+}
+
+.signagekit .c-state-shape {
+  fill: var(--state);
+  stroke: var(--state);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.signagekit .c-state-mark {
+  fill: none;
+  stroke: var(--on-state);
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.signagekit .c-stat-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  margin-inline-start: 0.35em;
+  /* Like the unit: a share of the value with a readable floor. */
+  font-size: max(0.32em, min(1em, 32px));
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text);
+  vertical-align: baseline;
+}
+
+/* Under the value when that lets the value be larger; fit.ts decides. */
+.signagekit .c-stat.trend-below .c-stat-trend {
+  display: flex;
+  width: max-content;
+  margin: 0.45em 0 0;
+  font-size: max(0.36em, min(1em, 32px));
+}
+
+/* Label beside the value, when that lets the value be larger. */
+.signagekit .c-stat.label-beside {
+  display: flex;
+  align-items: baseline;
+  gap: 0 0.8em;
+}
+
+.signagekit .c-stat.label-beside .c-stat-label {
+  margin-top: 0;
+}
+
+.signagekit .c-trend-icon {
+  width: 1.3em;
+  height: 1.3em;
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.signagekit .tone-good .c-trend-icon {
+  stroke: var(--good);
+}
+
+.signagekit .tone-danger .c-trend-icon {
+  stroke: var(--danger);
+}
+
+.signagekit .c-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25;
+}
+
+.signagekit .c-table th {
+  padding: 0 0.5em 0.6em;
+  color: var(--muted);
+  font-size: 0.6em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.signagekit .c-table td {
+  /* --row-room is spare height fit.ts hands out when the table fits. */
+  padding: calc(0.45em + var(--row-room, 0px)) 0.5em;
+  border-top: 1px solid var(--line);
+}
+
+.signagekit .c-table td:first-child {
+  font-weight: 600;
+}
+
+.signagekit .c-table th:first-child,
+.signagekit .c-table td:first-child {
+  padding-inline-start: 0;
+}
+
+.signagekit .c-table th:last-child,
+.signagekit .c-table td:last-child {
+  padding-inline-end: 0;
+}
+
+.signagekit .c-list {
+  list-style: none;
+  line-height: 1.3;
+}
+
+.signagekit .c-list li {
+  display: flex;
+  gap: 0.6em;
+}
+
+.signagekit .c-list li + li {
+  margin-top: 0.6em;
+}
+
+.signagekit .c-list li::before {
+  content: '';
+  flex: none;
+  width: 0.32em;
+  height: 0.32em;
+  margin-top: 0.48em;
+  background: var(--accent);
+}
+
+.signagekit .s-accent .c-list li::before {
+  background: var(--on-accent);
+}
+
+.signagekit .c-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.signagekit .c-clock-time {
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .c-clock-date {
+  margin-top: 0.35em;
+  color: var(--muted);
+  font-size: 0.24em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.signagekit .k-cycle {
+  padding-block: 0;
+}
+
+.signagekit .k-cycle .body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.signagekit .c-cycle {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* A tall, narrow zone wraps its messages instead of shrinking them. */
+.signagekit .c-cycle[data-wrap] {
+  white-space: normal;
+  width: 100%;
+}
+
+.signagekit .c-cycle.a-center {
+  align-self: center;
+}
+
+.signagekit .c-cycle.a-end {
+  align-self: flex-end;
+}
+
+.signagekit .c-chart {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.signagekit .c-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+  margin-bottom: 16px;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.signagekit .c-chart-key {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.signagekit .c-chart-key strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.signagekit .c-chart-swatch {
+  width: 14px;
+  height: 14px;
+}
+
+.signagekit .c-chart-plot {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+/* Square bars, no rounding, like the zones. */
+
+.signagekit .c-meter,
+.signagekit .c-meters,
+.signagekit .c-bars,
+.signagekit .c-split {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.signagekit .c-meter-figure {
+  font-size: 2.2em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.signagekit .c-meter-of {
+  color: var(--muted);
+  font-size: 0.45em;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.signagekit .c-bar {
+  height: 0.6em;
+  margin: 0.45em 0 0.35em;
+  background: var(--line);
+}
+
+.signagekit .c-bar-fill {
+  height: 100%;
+  background: var(--fill, var(--accent));
+}
+
+.signagekit .fill-good {
+  --fill: var(--good);
+  --state: var(--good);
+  --on-state: var(--on-good);
+}
+
+.signagekit .fill-warning {
+  --fill: var(--warning);
+  --state: var(--warning);
+  --on-state: var(--on-warning);
+}
+
+.signagekit .fill-danger {
+  --fill: var(--danger);
+  --state: var(--danger);
+  --on-state: var(--on-danger);
+}
+
+.signagekit .c-meters-row + .c-meters-row {
+  margin-top: 0.7em;
+}
+
+.signagekit .c-meters-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.signagekit .c-meters-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.signagekit .c-meters-value {
+  flex: none;
+}
+
+/* Units beside row values stay readable next to the number. */
+.signagekit .c-meters .c-meter-of,
+.signagekit .c-bars .c-meter-of {
+  font-size: 0.7em;
+}
+
+.signagekit .c-meters-row .c-bar {
+  height: 0.45em;
+  margin: 0.3em 0 0;
+}
+
+.signagekit .c-meters-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .c-bars {
+  display: grid;
+  /* One grid for all rows, so every bar starts at the same baseline. The bar
+     column keeps at least 40%; fitting shrinks the text, not the bars. */
+  grid-template-columns: minmax(0, max-content) minmax(40%, 1fr) max-content;
+  align-items: center;
+  gap: 0.5em 0.6em;
+}
+
+.signagekit .c-bars-row {
+  display: contents;
+}
+
+.signagekit .c-bars-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.signagekit .c-bars-track {
+  height: 0.9em;
+}
+
+.signagekit .c-bars-fill {
+  height: 100%;
+  background: var(--series-1);
+}
+
+.signagekit .c-bars-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .c-split-bar {
+  display: flex;
+  gap: 2px;
+  height: 2.2em;
+}
+
+.signagekit .c-split-part {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding-inline-start: 0.4em;
+  overflow: hidden;
+  font-weight: 700;
+}
+
+.signagekit .c-split-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3em 1.2em;
+  margin-top: 0.7em;
+  color: var(--muted);
+}
+
+.signagekit .c-split-legend .c-chart-swatch {
+  width: 0.6em;
+  height: 0.6em;
+}
+
+.signagekit .c-status,
+.signagekit .c-schedule,
+.signagekit .c-clocks {
+  width: 100%;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.signagekit .c-status li,
+.signagekit .c-clocks li {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.35em 0;
+  border-top: 1px solid var(--line);
+}
+
+.signagekit .c-status li:first-child,
+.signagekit .c-clocks li:first-child,
+.signagekit .c-schedule li:first-child {
+  border-top: none;
+}
+
+.signagekit .c-status-dot {
+  flex: none;
+  width: 0.95em;
+  height: 0.95em;
+  margin: 0 0.1em;
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.signagekit .c-status-label {
+  font-weight: 600;
+}
+
+.signagekit .c-status-note {
+  margin-inline-start: auto;
+  color: var(--muted);
+  /* A long note gives way to the label: it ends in an ellipsis. */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.signagekit .c-status-label {
+  flex: none;
+}
+
+.signagekit .c-status li .c-state-icon,
+.signagekit .c-meters-label .c-state-icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.signagekit .c-schedule li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  padding: 0.4em 0 0.4em 0.6em;
+  border-top: 1px solid var(--line);
+  border-inline-start: 0.2em solid transparent;
+}
+
+.signagekit .c-schedule li.is-now {
+  border-inline-start-color: var(--accent);
+  background: var(--surface);
+}
+
+.signagekit .c-schedule-time {
+  min-width: 3.2em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .is-now .c-schedule-time {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.signagekit .c-schedule-what {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.signagekit .c-schedule-title {
+  font-weight: 600;
+}
+
+.signagekit .c-schedule-detail {
+  color: var(--muted);
+  font-size: 0.7em;
+}
+
+.signagekit .c-schedule-tag {
+  margin-inline-start: auto;
+  padding-inline-end: 0.4em;
+  color: var(--muted);
+  font-size: 0.6em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.signagekit .is-now .c-schedule-tag {
+  color: var(--text);
+}
+
+.signagekit .c-schedule-empty {
+  color: var(--muted);
+  border: none;
+}
+
+.signagekit .c-queue {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.signagekit .c-queue-current {
+  font-size: 3.2em;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.signagekit .c-queue-recent {
+  display: flex;
+  gap: 0.8em;
+  margin-top: 0.4em;
+  color: var(--muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .c-clocks-label {
+  font-weight: 600;
+}
+
+.signagekit .c-clocks-time {
+  margin-inline-start: auto;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .c-spark {
+  display: block;
+  width: 100%;
+  height: 0.9em;
+  margin-top: 0.3em;
+  overflow: visible;
+}
+
+.signagekit .c-spark polyline {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.signagekit .c-spark path {
+  stroke: var(--accent);
+  stroke-width: 9;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Collapsed rows keep their column widths, so every page lines up. */
+.signagekit .c-table tr.off-page {
+  visibility: collapse;
+}
+
+.signagekit .c-table-page {
+  caption-side: bottom;
+  padding-top: 0.5em;
+  color: var(--muted);
+  font-size: 0.6em;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.signagekit .c-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sized square by the layout pass, so the caption sits right under it. */
+.signagekit .c-qr-code {
+  flex: none;
+}
+
+.signagekit .c-qr-label {
+  margin-top: 16px;
+  font-size: 26px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.signagekit .screen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.signagekit .screen > .grid {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.signagekit .alert {
+  --alert-bg: var(--accent);
+  --alert-ink: var(--on-accent);
+  background: var(--alert-bg);
+  color: var(--alert-ink);
+}
+
+.signagekit .alert.lvl-good {
+  --alert-bg: var(--good);
+  --alert-ink: var(--on-good);
+}
+
+.signagekit .alert.lvl-warning {
+  --alert-bg: var(--warning);
+  --alert-ink: var(--on-warning);
+}
+
+.signagekit .alert.lvl-danger {
+  --alert-bg: var(--danger);
+  --alert-ink: var(--on-danger);
+}
+
+.signagekit .alert .alert-icon {
+  flex: none;
+  stroke-width: 2.25;
+}
+
+.signagekit .alert.takeover {
+  display: grid;
+  grid-template-rows: 24% minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100%;
+  padding: 72px 96px 64px;
+}
+
+.signagekit .alert-head {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  min-height: 0;
+  padding-bottom: 32px;
+  border-bottom: 3px solid var(--alert-ink);
+}
+
+.signagekit .takeover .alert-icon {
+  height: 100%;
+  max-height: 200px;
+  width: auto;
+  aspect-ratio: 1;
+}
+
+.signagekit .alert-title-box {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.signagekit .alert-title {
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  width: max-content;
+}
+
+.signagekit .alert-box {
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.signagekit .takeover .alert-box {
+  padding-top: 40px;
+}
+
+.signagekit .alert-content {
+  line-height: 1.25;
+}
+
+.signagekit .alert-message {
+  font-size: 1.2em;
+  font-weight: 700;
+}
+
+.signagekit .alert-steps {
+  list-style: none;
+  margin-top: 0.7em;
+}
+
+.signagekit .alert-steps li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6em;
+}
+
+.signagekit .alert-steps li + li {
+  margin-top: 0.4em;
+}
+
+/* Step numbers in a ring, so steps read as a sequence at a distance. */
+.signagekit .alert-step-n {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  border: 0.1em solid var(--alert-ink);
+  border-radius: 50%;
+  font-size: 0.8em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transform: translateY(-0.1em);
+}
+
+.signagekit .alert-footer {
+  padding-top: 24px;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.signagekit .alert.banner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex: none;
+  height: 18%;
+  min-height: 140px;
+  padding: 20px 48px;
+}
+
+.signagekit .banner .alert-icon {
+  height: 60%;
+  width: auto;
+  aspect-ratio: 1;
+}
+
+.signagekit .banner .alert-box {
+  flex: 1 1 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.signagekit .alert-banner-title {
+  display: block;
+  font-weight: 800;
+}
+
+.signagekit .banner .alert-footer {
+  padding: 0;
+  font-size: 24px;
+  /* At most a quarter of the banner, wrapping, so the message keeps room. */
+  max-width: 26%;
+  text-align: end;
+}
+
+/* Density: set by the layout pass from each zone's size. Small zones keep
+   more room for content; strips put the title beside it. */
+
+.signagekit
+  .cell[data-density='tight']:not(.k-stack):not(.k-image):not(.k-slideshow) {
+  padding: 24px 28px;
+}
+
+.signagekit .cell[data-density='tight'] > .title {
+  margin-bottom: 14px;
+  font-size: 18px;
+}
+
+.signagekit
+  .cell[data-density='strip']:not(.k-stack):not(.k-image):not(.k-slideshow) {
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  padding: 0 28px;
+}
+
+.signagekit .cell[data-density='strip'] > .title {
+  flex: 0 1 auto;
+  max-width: 30%;
+  margin: 0;
+  font-size: 18px;
+}
+
+.signagekit .cell[data-density='strip'] > .body {
+  align-self: stretch;
+  padding: 10px 0;
+}
+
+.signagekit
+  .cell[data-density='compact']:not(.k-stack):not(.k-image):not(.k-slideshow) {
+  padding: 12px 28px;
+}
+
+.signagekit .cell[data-density='compact'] > .title {
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+/* Long titles end in an ellipsis instead of being cut mid-word. */
+.signagekit .title > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Short zones hold one line of content, whatever the component: it sits in
+   the middle of the zone, not at the top. */
+.signagekit .cell[data-density='strip'] > .body,
+.signagekit .cell[data-density='compact'] > .body {
+  display: flex;
+  flex-direction: column;
+}
+
+.signagekit .cell[data-density='strip'] > .body > *,
+.signagekit .cell[data-density='compact'] > .body > * {
+  margin-block: auto;
+}
+
+/* Single figures sit in the middle of their zone; lists stay at the top. */
+.signagekit .k-stat > .body,
+.signagekit .k-clock > .body,
+.signagekit .k-queue > .body,
+.signagekit .k-countdown > .body,
+.signagekit .k-meter > .body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Auto margins center like justify-content: center, but content that is
+   too tall overflows at the bottom instead of being cut at the top. */
+.signagekit .k-stat > .body > *,
+.signagekit .k-clock > .body > *,
+.signagekit .k-queue > .body > *,
+.signagekit .k-countdown > .body > *,
+.signagekit .k-meter > .body > * {
+  margin-block: auto;
+}
+
+/* Rows the layout pass hid to keep text readable. */
+.signagekit .body[data-more]::after {
+  content: attr(data-more);
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  color: var(--muted);
+  font-size: var(--more-size, 20px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.signagekit .cell[data-density='strip'] .body[data-more]::after,
+.signagekit .cell[data-density='compact'] .body[data-more]::after {
+  left: auto;
+  right: 0;
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* A row of narrow stats wraps into two columns. */
+.signagekit .c-stack.d-row.wrapped {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+}
+
+/* In a short strip, world clocks sit side by side instead of in rows. */
+.signagekit .cell[data-density='strip'] .c-clocks,
+.signagekit .cell[data-density='compact'] .c-clocks {
+  display: flex;
+  gap: 0 1.6em;
+}
+
+.signagekit .cell[data-density='strip'] .c-clocks li,
+.signagekit .cell[data-density='compact'] .c-clocks li {
+  gap: 0.5em;
+  padding: 0;
+  border: none;
+}
+
+.signagekit .cell[data-density='strip'] .c-list,
+.signagekit .cell[data-density='compact'] .c-list {
+  display: flex;
+  gap: 0 1.6em;
+}
+
+.signagekit .cell[data-density='strip'] .c-list li + li,
+.signagekit .cell[data-density='compact'] .c-list li + li {
+  margin-top: 0;
+}
+
+.signagekit .is-missing {
+  color: var(--muted);
+}
+
+.signagekit .c-empty {
+  color: var(--muted);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Tables too wide for their zone let the widest column end in an ellipsis. */
+.signagekit .c-table[data-flex='0'] td:nth-child(1),
+.signagekit .c-table[data-flex='0'] th:nth-child(1),
+.signagekit .c-table[data-flex='1'] td:nth-child(2),
+.signagekit .c-table[data-flex='1'] th:nth-child(2),
+.signagekit .c-table[data-flex='2'] td:nth-child(3),
+.signagekit .c-table[data-flex='2'] th:nth-child(3),
+.signagekit .c-table[data-flex='3'] td:nth-child(4),
+.signagekit .c-table[data-flex='3'] th:nth-child(4),
+.signagekit .c-table[data-flex='4'] td:nth-child(5),
+.signagekit .c-table[data-flex='4'] th:nth-child(5),
+.signagekit .c-table[data-flex='5'] td:nth-child(6),
+.signagekit .c-table[data-flex='5'] th:nth-child(6),
+.signagekit .c-table[data-flex='6'] td:nth-child(7),
+.signagekit .c-table[data-flex='6'] th:nth-child(7),
+.signagekit .c-table[data-flex='7'] td:nth-child(8),
+.signagekit .c-table[data-flex='7'] th:nth-child(8) {
+  max-width: 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* While fit.ts measures cells, nothing is cut, so it sees the full text. */
+.signagekit .c-table.measuring td,
+.signagekit .c-table.measuring th {
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.signagekit .c-table.has-widths {
+  table-layout: fixed;
+}
+
+.signagekit .c-table.has-widths th,
+.signagekit .c-table.has-widths td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.signagekit .problems {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 40%;
+  overflow: hidden;
+  padding: 20px 48px;
+  background: #7f1d1d;
+  color: #ffffff;
+  font:
+    20px/1.4 ui-monospace,
+    monospace;
+}

@@ -1,0 +1,23 @@
+hours:
+  - [Maternity, '14:00 - 20:00']
+  - [Surgical, '15:00 - 19:00']
+  - [Paediatrics, '10:00 - 20:00']
+  - [Cardiology, '14:00 - 18:00']
+notices:
+  - Two visitors per bed
+  - Use the hand gel at every ward door
+  - Parking validation at Reception
+
+alert:
+  level: danger
+  icon: fire
+  title: Fire alarm
+  message: 'Fire reported on Level 2, East Wing. Leave the building by the nearest exit.'
+  steps:
+    - Do not use the lifts
+    - Follow the green exit signs
+    - Staff will guide patients and visitors
+    - Gather in Car Park B, away from the entrance
+  footer: 'Do not re-enter until a fire officer gives the all clear. Updated 14:32'
+  mode: takeover
+  until: '2026-11-15T00:00:00Z'

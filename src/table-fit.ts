@@ -1,0 +1,119 @@
+import { contentBox } from './measure'
+import { RANGES } from './type-scale'
+
+const sizeOf = (el: HTMLElement) => parseFloat(el.style.fontSize) || 0
+
+type AutoPaged = HTMLTableElement & { __autoPage?: (n: number | null) => void }
+
+/**
+ * Cells cut short by fixed column widths. Table cells report no overflow in
+ * scrollWidth, so the text is measured with a range instead.
+ */
+function clipped(table: HTMLTableElement): boolean {
+  // An ellipsis shortens the text itself, so it is off while measuring.
+  table.classList.add('measuring')
+  const range = document.createRange()
+  const cut = Array.from(table.querySelectorAll<HTMLElement>('td, th')).some(
+    (c) => {
+      const cs = getComputedStyle(c)
+      const room =
+        c.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+      range.selectNodeContents(c)
+      return range.getBoundingClientRect().width > room + 0.1
+    },
+  )
+  table.classList.remove('measuring')
+  return cut
+}
+
+export function tableOverflow(el: HTMLElement): void {
+  const [w, h] = contentBox(el.parentElement!)
+  const table = el as AutoPaged
+  // Fixed widths always fill the zone, so the fit can't see that cells are
+  // cut short: shrink until they aren't, down to the floor, then page.
+  if (table.classList.contains('has-widths')) {
+    const [floor] = RANGES.table
+    let size = sizeOf(el)
+    while (size > floor && clipped(table)) el.style.fontSize = --size + 'px'
+  }
+  if (el.scrollWidth > w + 1) widestColumn(table)
+  if (!table.__autoPage) return
+  // Rows are all showing here (see showAllRows), so this is the same answer
+  // whatever the last pass decided.
+  const rows = Array.from(table.tBodies[0]?.rows ?? []).filter(
+    (r) => r.style.visibility === 'visible',
+  )
+  if (!rows.length) return
+  const head = table.tHead?.offsetHeight ?? 0
+  const heights = rows.map((r) => r.offsetHeight)
+  const used = head + heights.reduce((a, b) => a + b, 0)
+  // A table that pages by hand (page_rows) always shows its pager line.
+  const pager = pagerHeight(table)
+  const all = table.tBodies[0]?.rows.length ?? 0
+  const room = all > rows.length ? h - pager : h
+  if (used <= room + 1) {
+    table.__autoPage(null)
+    // A table held back by its width leaves height over: rows take some of
+    // it as padding, up to half a row each, so the zone looks filled
+    // without rows floating far apart.
+    const extra = Math.min((room - used - 4) / heights.length, sizeOf(el) * 0.9)
+    if (extra > 1) {
+      table.style.setProperty('--row-room', `${extra / 2}px`)
+      // Rounding can still tip it over; then the rows keep their own height.
+      if (table.offsetHeight > room) table.style.removeProperty('--row-room')
+    }
+    return
+  }
+  // Doesn't fit: page, leaving room for the "1 / 2" line under the rows.
+  const rowH = Math.max(...heights, 1)
+  table.__autoPage(Math.max(1, Math.floor((h - head - pager) / rowH)))
+}
+
+/**
+ * Height of the "1 / 2" pager line: measured when the table has one (it is
+ * hidden while fitting), else estimated from the text size.
+ */
+function pagerHeight(table: HTMLTableElement): number {
+  const caption = table.caption
+  if (!caption) return sizeOf(table) * 1.5
+  caption.style.display = ''
+  const h = caption.offsetHeight
+  caption.style.display = 'none'
+  return h || sizeOf(table) * 1.5
+}
+
+/**
+ * Shows every row a table could show at once, all of them or the first
+ * page_rows, and hides its pager, so fitting and paging measure the same
+ * content on every pass. Returns a function that hands rows back to the
+ * table's own paging.
+ */
+export function showAllRows(root: ParentNode): () => void {
+  const tables = Array.from(root.querySelectorAll<HTMLTableElement>('.c-table'))
+  for (const t of tables) {
+    t.style.removeProperty('--row-room')
+    const cap = Number(t.dataset.pageRows) || Infinity
+    Array.from(t.tBodies[0]?.rows ?? []).forEach((r, i) => {
+      r.style.visibility = i < cap ? 'visible' : 'collapse'
+    })
+    if (t.caption) t.caption.style.display = 'none'
+  }
+  return () => {
+    for (const t of tables) {
+      Array.from(t.tBodies[0]?.rows ?? []).forEach(
+        (r) => (r.style.visibility = ''),
+      )
+      if (t.caption) t.caption.style.display = ''
+    }
+  }
+}
+
+function widestColumn(table: HTMLTableElement): void {
+  const widths: number[] = []
+  for (const row of Array.from(table.rows)) {
+    Array.from(row.cells).forEach(
+      (c, i) => (widths[i] = Math.max(widths[i] ?? 0, c.scrollWidth)),
+    )
+  }
+  table.dataset.flex = String(widths.indexOf(Math.max(...widths)))
+}

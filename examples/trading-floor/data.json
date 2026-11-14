@@ -1,0 +1,23 @@
+{
+  "idx": {
+    "ftse": { "value": 8342.17, "trend": "up", "delta": "+0.42%", "spark": [8290, 8301, 8288, 8310, 8325, 8338, 8342] },
+    "spx": { "value": 6104.55, "trend": "down", "delta": "-0.18%", "spark": [6130, 6125, 6118, 6110, 6112, 6107, 6104] }
+  },
+  "chart": {
+    "labels": ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00"],
+    "ftse": [0, 0.1, 0.3, 0.2, 0.35, 0.4, 0.38, 0.42],
+    "spx": [0, -0.05, -0.1, 0.05, -0.12, -0.2, -0.15, -0.18]
+  },
+  "movers": [
+    ["Rolls-Royce", "612.40", "+4.8"],
+    ["Anglo American", "2,481.00", "-3.9"],
+    ["Hargreaves Lansdown", "1,102.50", "+2.2"],
+    ["BP", "421.15", "-1.4"],
+    ["Scottish Mortgage", "892.00", "+1.1"]
+  ],
+  "messages": [
+    "ECB rate decision 13:15 CET",
+    "Pre-trade compliance sign-off for orders above 10M",
+    "BoE governor speaks at 15:30"
+  ]
+}

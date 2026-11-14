@@ -1,0 +1,28 @@
+lunch:
+  - [Monday, Pasta bake]
+  - [Tuesday, Chicken wrap]
+  - [Wednesday, Veggie chili]
+  - [Thursday, Fish fingers]
+  - [Friday, Pizza]
+week:
+  - Picture day is Wednesday
+  - Library books due Thursday
+  - Parent evening Friday at 18:00
+messages:
+  - Please sign the field trip form
+  - Lost property is by the gym
+  - Bake sale on Friday
+
+alert:
+  level: warning
+  icon: snow
+  title: School closed tomorrow
+  message: 'Heavy snow is forecast overnight. Maple Ridge Elementary is closed on Tuesday.'
+  steps:
+    - School buses will not run
+    - Online lessons start at 9:00
+    - After-school club is cancelled
+    - Check the district app for updates
+  footer: 'Office 555-0178. Posted Monday at 15:10'
+  mode: takeover
+  until: '2026-11-15T00:00:00Z'

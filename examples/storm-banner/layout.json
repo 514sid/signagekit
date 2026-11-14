@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "colors": { "scheme": "dark" },
+  "layout": {
+    "design": "landscape",
+    "flow": [
+      { "zone": "head", "span": 9, "height": "130px" },
+      { "zone": "clock", "span": 3, "height": "130px" },
+      { "zone": "departures", "span": 9, "height": 1 },
+      { "zone": "stats", "span": 3, "height": 1 }
+    ]
+  },
+  "zones": {
+    "head": { "type": "heading", "text": "Eastbridge interchange" },
+    "clock": { "type": "clock", "surface": "raised" },
+    "departures": {
+      "type": "table",
+      "title": "Next departures",
+      "columns": ["Time", "Route", "Destination", "Status"],
+      "align": ["start", "start", "start", "start"],
+      "rows": { "bind": "/departures" }
+    },
+    "stats": {
+      "type": "stack",
+      "direction": "column",
+      "items": [
+        { "type": "stat", "title": "Buses running", "value": { "bind": "/running" }, "state": "good" },
+        { "type": "stat", "title": "Cancelled today", "value": { "bind": "/cancelled" }, "state": "warning" }
+      ]
+    }
+  },
+  "alert": { "bind": "/alert" }
+}

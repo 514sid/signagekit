@@ -1,0 +1,62 @@
+{
+  "colors": { "scheme": "light", "background": "#ffffff", "accent": "#1d4ed8" },
+  "layout": {
+    "design": "landscape",
+    "flow": [
+      { "zone": "head", "span": 5, "height": "150px" },
+      { "zone": "revenue", "span": 4, "height": "150px" },
+      { "zone": "target", "span": 3, "height": "150px" },
+      { "zone": "hourly", "span": 8, "height": 3 },
+      { "zone": "reps", "span": 4, "height": 3 },
+      { "zone": "regions", "span": 12, "height": 2 }
+    ]
+  },
+  "zones": {
+    "head": { "type": "heading", "text": "Sales today" },
+    "revenue": {
+      "type": "stat",
+      "surface": "raised",
+      "title": "Revenue",
+      "value": { "bind": "/kpi/revenue" },
+      "label": "Since midnight",
+      "format": "compact"
+    },
+    "target": {
+      "type": "stat",
+      "surface": "raised",
+      "title": "Against target",
+      "value": { "bind": "/kpi/vs_target" },
+      "unit": "%",
+      "label": { "bind": "/kpi/target_label" },
+      "state": { "bind": "/kpi/state", "fallback": "neutral" },
+      "trend": { "bind": "/kpi/trend" },
+      "delta": { "bind": "/kpi/delta" },
+      "good_when": "up"
+    },
+    "hourly": {
+      "type": "chart",
+      "kind": "column",
+      "title": "Revenue by hour, thousands",
+      "labels": { "bind": "/hourly/labels" },
+      "series": [
+        { "name": "Revenue", "values": { "bind": "/hourly/revenue" } }
+      ],
+      "target": 15,
+      "target_label": "Hourly target 15K"
+    },
+    "reps": {
+      "type": "bars",
+      "title": "Top reps, $K",
+      "items": { "bind": "/reps" },
+      "limit": 6
+    },
+    "regions": {
+      "type": "meters",
+      "title": "Quota attainment by region",
+      "items": { "bind": "/regions" },
+      "max": 120,
+      "unit": "%",
+      "thresholds": { "warning": 85, "danger": 70 }
+    }
+  }
+}

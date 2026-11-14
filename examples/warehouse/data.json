@@ -1,0 +1,20 @@
+{
+  "site": "Waalhaven DC, building 3",
+  "picks": 12907,
+  "dock": {
+    "current": "T-2291",
+    "recent": ["T-2290", "T-2289", "T-2288"]
+  },
+  "trucks": [
+    ["DHL Freight", "Hamburg", "4", "14:10"],
+    ["Van der Berg", "Antwerp", "7", "14:25"],
+    ["DB Schenker", "Lyon", "2", "14:40"],
+    ["Kuehne + Nagel", "Paris", "5", "15:05"],
+    ["GEODIS", "Madrid", "6", "15:20"]
+  ],
+  "forklifts": [
+    { "label": "FLT-07", "value": 12 },
+    { "label": "FLT-03", "value": 28 },
+    { "label": "FLT-11", "value": 64 }
+  ]
+}

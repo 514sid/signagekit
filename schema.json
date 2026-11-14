@@ -1,0 +1,962 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unpkg.com/@514sid/signagekit/schema.json",
+  "title": "signagekit screen",
+  "description": "A signagekit screen document, written as JSON or YAML. The screen is a grid of named zones on a canvas that is 1080 px on its short side and follows the screen's shape; each zone holds one component. Text sizes itself to fit its zone. Values that change go in a separate data object and are referenced with {\"bind\": \"/path\"}. Text sizes itself consistently across the screen: list-like components share one readable body size, figures in a row share a size, and anything that doesn't fit at a readable size drops rows with \"+N more\" or pages, instead of shrinking. Missing values show a dash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["layout", "zones"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 1,
+      "description": "Format version the document is written in. Leave it out for format 1. signagekit upgrades older formats on load, and shows newer ones as far as it can read them, skipping the rest with warnings."
+    },
+    "colors": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Every color on the screen. Anything left out comes from the scheme. Text pairs should keep at least 4.5:1 contrast; the app warns when they don't.",
+      "properties": {
+        "scheme": {
+          "enum": ["dark", "light"],
+          "description": "Default colors to start from. Defaults to the scheme passed to mount(), else dark."
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Page background behind the zones. Dark scheme default #0b0f17, light #eef0f3."
+        },
+        "surface": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Background of card zones. Dark scheme default #161c27, light #ffffff."
+        },
+        "text": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Main text color, on background and on surface. Dark scheme default #f1f5f9, light #111827."
+        },
+        "muted": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Labels, table headers and dates, on surface. Dark scheme default #a3adbb, light #4b5563."
+        },
+        "line": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Table rules and dividers. Dark scheme default #2a3443, light #dde1e7."
+        },
+        "accent": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Accent zones and list markers. Defaults to the accent passed to mount(), else #2563eb."
+        },
+        "on_accent": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Text on accent zones. Defaults to whichever of #111827 and #f1f5f9 has more contrast with the accent."
+        },
+        "good": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Good state: the zone strip and the icon badge. Dark default #22c55e, light #16a34a."
+        },
+        "warning": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Warning state. Dark default #fab219, light #f59e0b."
+        },
+        "danger": {
+          "type": "string",
+          "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+          "description": "Danger state. Dark default #ef4444, light #dc2626."
+        }
+      }
+    },
+    "layout": {
+      "description": "How zones are placed: a flow (recommended) or a fixed grid.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["flow"],
+          "description": "Zones in reading order. Designed once for landscape or portrait; on a screen of another shape each zone keeps about its designed width, so zones move to new rows on narrower screens and share rows on wider ones. Rows always fill the full width.",
+          "properties": {
+            "design": {
+              "enum": ["landscape", "portrait"],
+              "description": "The orientation the spans were designed for. Default landscape."
+            },
+            "gap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 200,
+              "description": "Width of the hairline rules between zones in px. Default 2. Use 0 for none."
+            },
+            "flow": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_-]*$",
+                    "description": "Zone name, full width, height share 1."
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["zone"],
+                    "properties": {
+                      "zone": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_-]*$"
+                      },
+                      "span": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 12,
+                        "description": "Columns out of 12 in the design orientation. Default 12."
+                      },
+                      "height": {
+                        "oneOf": [
+                          {
+                            "type": "number",
+                            "exclusiveMinimum": 0,
+                            "maximum": 100,
+                            "description": "Share of the free height, like CSS fr."
+                          },
+                          {
+                            "type": "string",
+                            "pattern": "^\\d+(\\.\\d+)?px$",
+                            "description": "Fixed height, like \"150px\". Fixed strips never share a row with zones that grow."
+                          }
+                        ],
+                        "description": "A number is a share of the free height, like CSS fr; \"150px\" is fixed. Default 1. Zones in one row take the tallest height in the row; fixed strips never share a row with zones that grow."
+                      }
+                    }
+                  }
+                ]
+              },
+              "examples": [
+                [
+                  { "zone": "head", "span": 9, "height": "150px" },
+                  { "zone": "clock", "span": 3, "height": "150px" },
+                  { "zone": "main", "span": 8, "height": 3 },
+                  { "zone": "side", "span": 4, "height": 3 }
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["areas"],
+          "description": "Fixed grid. Each named area must be one rectangle. Prefer flow, which adapts to the screen's shape.",
+          "properties": {
+            "areas": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "type": "string" },
+              "description": "One string per row, names separated by spaces, '.' for an empty cell. Example: [\"head head\", \"main side\"].",
+              "examples": [["head head", "main side"]]
+            },
+            "columns": {
+              "type": "string",
+              "description": "Column sizes, one per column: px, fr, % or auto. Defaults to equal columns.",
+              "examples": ["2fr 1fr"]
+            },
+            "rows": {
+              "type": "string",
+              "description": "Row sizes, one per row. Defaults to equal rows.",
+              "examples": ["150px 1fr"]
+            },
+            "gap": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 200,
+              "description": "Width of the hairline rules between zones in px. Default 2. Use 0 for none."
+            }
+          }
+        }
+      ]
+    },
+    "zones": {
+      "type": "object",
+      "description": "Component for each zone name used in the layout (in flow or in areas).",
+      "propertyNames": { "pattern": "^[a-z][a-z0-9_-]*$" },
+      "additionalProperties": { "$ref": "#/$defs/component" }
+    },
+    "alert": {
+      "description": "A screen-wide message, for anything from an evacuation to a maintenance notice. Write the fields here, or bind the whole alert to an object in the data ({\"bind\": \"/alert\"}) so that writing data alone raises or clears it.",
+      "oneOf": [
+        { "$ref": "#/$defs/bind" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "The alert itself. It shows while title or message is set, and until `until`.",
+          "properties": {
+            "level": {
+              "enum": ["info", "good", "warning", "danger"],
+              "description": "Sets the color: info uses the accent, good means all clear, warning and danger use the state colors. Default danger."
+            },
+            "icon": {
+              "$ref": "#/$defs/icon",
+              "description": "Names the situation, like fire or storm. Default: the level's own icon."
+            },
+            "title": {
+              "$ref": "#/$defs/value",
+              "description": "Short headline, shown very large: \"Fire alarm\"."
+            },
+            "message": {
+              "$ref": "#/$defs/value",
+              "description": "The lead sentence: what is happening or what to do."
+            },
+            "steps": {
+              "$ref": "#/$defs/values",
+              "description": "Numbered instructions, one short line each. Shown in takeover mode."
+            },
+            "footer": {
+              "$ref": "#/$defs/value",
+              "description": "Small print: who to contact, when it was updated."
+            },
+            "mode": {
+              "enum": ["takeover", "banner"],
+              "description": "takeover fills the screen (default); banner is a strip across the top and the screen stays visible."
+            },
+            "until": {
+              "$ref": "#/$defs/value",
+              "description": "ISO date and time after which the alert no longer shows."
+            },
+            "text": {
+              "$ref": "#/$defs/value",
+              "description": "Older name for message."
+            },
+            "state": {
+              "enum": ["warning", "danger"],
+              "description": "Older name for level."
+            }
+          }
+        }
+      ]
+    },
+    "$schema": {
+      "type": "string",
+      "description": "Path or URL of this schema, for editor autocomplete. Ignored by the app."
+    }
+  },
+  "$defs": {
+    "bind": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bind"],
+      "properties": {
+        "bind": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "Path into the data, like /menu or /menu/0/2. Keys are separated by /, array items by their index."
+        },
+        "fallback": {
+          "type": ["string", "number"],
+          "description": "Shown when the path is missing or empty in the data. Without it a missing value shows as a dash, and an empty list as \"Nothing to show\"."
+        }
+      }
+    },
+    "value": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "number" },
+        { "$ref": "#/$defs/bind" }
+      ]
+    },
+    "values": {
+      "oneOf": [
+        { "type": "array", "items": { "$ref": "#/$defs/value" } },
+        { "$ref": "#/$defs/bind" }
+      ],
+      "description": "A list of values, or a bind to one in the data."
+    },
+    "state": {
+      "oneOf": [
+        { "enum": ["neutral", "good", "warning", "danger"] },
+        { "$ref": "#/$defs/bind" }
+      ],
+      "description": "neutral, good, warning or danger, or a bind to one."
+    },
+    "surface": {
+      "enum": ["base", "raised", "accent"],
+      "description": "Zone background: base uses the background color, raised the surface color, accent the accent color. Zones run edge to edge, separated by hairline rules in the line color. Default base."
+    },
+    "align": { "enum": ["start", "center", "end"] },
+    "title": {
+      "$ref": "#/$defs/value",
+      "description": "Short label above the component, like \"Menu\", or a bind to one. Shown in small capitals with an accent marker."
+    },
+    "titleIcon": {
+      "$ref": "#/$defs/icon",
+      "description": "Shown before the title in place of the square marker."
+    },
+    "size": {
+      "type": "number",
+      "minimum": 8,
+      "maximum": 400,
+      "description": "Pins the text size in px on the reference canvas (1080 px on the short side) and turns off automatic sizing for this zone. Leave it out to let the screen size text consistently."
+    },
+    "weight": {
+      "type": "number",
+      "minimum": 0.1,
+      "maximum": 20,
+      "description": "Inside a stack: this part's share of the space relative to its siblings. Default 1."
+    },
+    "icon": {
+      "enum": [
+        "info",
+        "check",
+        "warning",
+        "danger",
+        "fire",
+        "evacuate",
+        "assembly",
+        "medical",
+        "first-aid",
+        "storm",
+        "wind",
+        "snow",
+        "flood",
+        "heat",
+        "lockdown",
+        "shelter",
+        "security",
+        "power",
+        "water",
+        "network",
+        "closed",
+        "delay",
+        "maintenance",
+        "announcement",
+        "phone",
+        "biohazard",
+        "radiation",
+        "chemical",
+        "event",
+        "location",
+        "accessibility"
+      ],
+      "description": "A named icon (from Lucide). Use the one that names the situation: fire, evacuate, medical, storm, lockdown, power, network, closed, maintenance and so on."
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Sets the state from the value, so data only carries numbers: at or past danger shows danger, at or past warning shows warning, anything else neutral. With danger above warning, higher is worse; with danger below warning, lower is worse. An explicit state wins.",
+      "properties": {
+        "warning": { "type": "number" },
+        "danger": { "type": "number" }
+      }
+    },
+    "part": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "value"],
+      "properties": {
+        "label": { "$ref": "#/$defs/value" },
+        "value": { "$ref": "#/$defs/value" },
+        "max": { "$ref": "#/$defs/value" },
+        "state": { "$ref": "#/$defs/state" }
+      }
+    },
+    "parts": {
+      "oneOf": [
+        { "type": "array", "items": { "$ref": "#/$defs/part" } },
+        { "$ref": "#/$defs/bind" }
+      ],
+      "description": "A list of parts, or a bind to one in the data."
+    },
+    "component": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Large title, sized to fill its zone.",
+          "additionalProperties": false,
+          "required": ["type", "text"],
+          "properties": {
+            "type": { "const": "heading" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "text": { "$ref": "#/$defs/value" },
+            "align": { "$ref": "#/$defs/align" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Paragraph. Line breaks in the text are kept.",
+          "additionalProperties": false,
+          "required": ["type", "text"],
+          "properties": {
+            "type": { "const": "text" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": {
+              "oneOf": [
+                { "enum": ["s", "m", "l", "xl"] },
+                { "type": "number", "minimum": 8, "maximum": 400 }
+              ],
+              "description": "s, m, l or xl (24, 32, 48, 64 px), or px. Ignored when fit is true."
+            },
+            "weight": { "$ref": "#/$defs/weight" },
+            "text": { "$ref": "#/$defs/value" },
+            "align": { "$ref": "#/$defs/align" },
+            "fit": {
+              "type": "boolean",
+              "description": "Size the text to fill the zone."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Big number with an optional unit, label, state and trend.",
+          "additionalProperties": false,
+          "required": ["type", "value"],
+          "properties": {
+            "type": { "const": "stat" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "value": { "$ref": "#/$defs/value" },
+            "label": { "$ref": "#/$defs/value" },
+            "unit": { "$ref": "#/$defs/value" },
+            "state": {
+              "$ref": "#/$defs/state",
+              "description": "Marks the zone with a colored strip and an icon badge (check, !, cross) next to the label. The label defaults to Good, Warning or Danger. A bound value that is not one of the four shows as neutral. Default neutral."
+            },
+            "trend": {
+              "oneOf": [
+                { "enum": ["up", "down", "flat"] },
+                { "$ref": "#/$defs/bind" }
+              ],
+              "description": "Shows a trend arrow after the value. A bound value that is not up, down or flat shows no arrow."
+            },
+            "delta": {
+              "$ref": "#/$defs/value",
+              "description": "Change printed next to the arrow, like \"+4.2%\" or \"-3 min\"."
+            },
+            "good_when": {
+              "enum": ["up", "down"],
+              "description": "Which direction is good news. A move that way colors the arrow green, the other way red. Without it the arrow stays neutral."
+            },
+            "format": {
+              "enum": ["compact", "full"],
+              "description": "compact (default) shortens numbers from 10,000 up, like 1M or 12.9K, so one big value doesn't shrink every stat in its row. full shows every digit."
+            },
+            "match_row": {
+              "type": "boolean",
+              "description": "Stats in a row share one size so they line up (default true). false gives this stat its own size and leaves it out, so one long value does not shrink its neighbours."
+            },
+            "spark": {
+              "$ref": "#/$defs/values",
+              "description": "Recent values, drawn as a small line under the number with the latest one marked."
+            },
+            "thresholds": { "$ref": "#/$defs/thresholds" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Table that shrinks its text so all rows fit.",
+          "additionalProperties": false,
+          "required": ["type", "columns", "rows"],
+          "properties": {
+            "type": { "const": "table" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "columns": { "type": "array", "items": { "type": "string" } },
+            "rows": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/value" }
+                  }
+                },
+                { "$ref": "#/$defs/bind" }
+              ],
+              "description": "One array of cells per row. Empty cells show a dash."
+            },
+            "align": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/align" },
+              "description": "Alignment per column."
+            },
+            "page_rows": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Most rows per page. Rows that don't fit at a readable size page automatically anyway; this caps the page size. Pages flip instantly and show \"page / pages\"."
+            },
+            "seconds": {
+              "type": "number",
+              "minimum": 3,
+              "maximum": 3600,
+              "description": "Seconds per page. Default 10."
+            },
+            "widths": {
+              "type": "array",
+              "items": { "type": "number", "exclusiveMinimum": 0 },
+              "description": "Relative column widths, one per column, like [3, 1, 1]. Long cells end in an ellipsis. Without it, columns size to their content and the widest one is truncated if the table is too wide."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Bulleted list. Empty items are skipped. Rows that don't fit at a readable size are dropped from the end with \"+N more\".",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "list" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "items": { "$ref": "#/$defs/values" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Image from an https URL, filling the zone.",
+          "additionalProperties": false,
+          "required": ["type", "src"],
+          "properties": {
+            "type": { "const": "image" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "src": { "$ref": "#/$defs/value" },
+            "fit": { "enum": ["cover", "contain"] },
+            "alt": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Current time, updated each minute.",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "clock" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "hour12": { "type": "boolean" },
+            "show_date": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Time left until a moment, like '2 d 4 h'. Empty once it has passed.",
+          "additionalProperties": false,
+          "required": ["type", "to"],
+          "properties": {
+            "type": { "const": "countdown" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "to": {
+              "$ref": "#/$defs/value",
+              "description": "ISO 8601 date and time, like 2026-12-24T18:00:00Z."
+            },
+            "label": { "$ref": "#/$defs/value" },
+            "done": {
+              "$ref": "#/$defs/value",
+              "description": "Shown once the time has passed. Default \"Now\"."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Shows one message at a time on a single line and swaps to the next instantly, with no animation. All messages share one font size that fits the zone width.",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "cycle" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "items": {
+              "$ref": "#/$defs/values",
+              "description": "Messages to show in turn. Keep them short: the longest one sets the size for all."
+            },
+            "seconds": {
+              "type": "number",
+              "minimum": 3,
+              "maximum": 3600,
+              "description": "Seconds each message stays up. Default 8."
+            },
+            "align": { "$ref": "#/$defs/align" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Line, area or column chart. Column charts print each value on its bar, drawn with uPlot. Series colors come from a fixed, colorblind-checked order; two or more series get a legend with each series' latest value. Not interactive.",
+          "additionalProperties": false,
+          "required": ["type", "kind", "labels", "series"],
+          "properties": {
+            "type": { "const": "chart" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "kind": {
+              "enum": ["line", "area", "column"],
+              "description": "line: trends, several series. area: one series over time. column: compare one series across categories."
+            },
+            "labels": {
+              "$ref": "#/$defs/values",
+              "description": "X-axis labels, one per point."
+            },
+            "series": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "description": "Data series, in order. Column charts take one. Past 3 series, prefer splitting into several charts.",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["name", "values"],
+                "properties": {
+                  "name": { "$ref": "#/$defs/value" },
+                  "values": {
+                    "$ref": "#/$defs/values",
+                    "description": "One number per label. Numeric text like \"1,240\" is read as a number; anything else leaves a gap."
+                  }
+                }
+              }
+            },
+            "target": {
+              "$ref": "#/$defs/value",
+              "description": "Draws a labelled horizontal line at this value, like a goal or an SLO. It always stays in view."
+            },
+            "target_label": {
+              "$ref": "#/$defs/value",
+              "description": "Label on the target line. Default \"Target <value>\"."
+            },
+            "y_min": {
+              "type": "number",
+              "description": "Bottom of the y axis. Default 0 for column and area charts, fitted to the data for lines."
+            },
+            "y_max": {
+              "type": "number",
+              "description": "Top of the y axis. Default fitted to the data."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "One value against a limit: a large figure, a bar and an optional state with icon and label.",
+          "additionalProperties": false,
+          "required": ["type", "value"],
+          "properties": {
+            "type": { "const": "meter" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "value": { "$ref": "#/$defs/value" },
+            "max": { "$ref": "#/$defs/value", "description": "Default 100." },
+            "label": { "$ref": "#/$defs/value" },
+            "unit": { "$ref": "#/$defs/value" },
+            "state": { "$ref": "#/$defs/state" },
+            "thresholds": { "$ref": "#/$defs/thresholds" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "One row per item, each a label, its value against a limit and a bar. Bars line up.",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "meters" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "items": { "$ref": "#/$defs/parts" },
+            "max": {
+              "$ref": "#/$defs/value",
+              "description": "Limit for rows without their own max. Default 100."
+            },
+            "unit": { "$ref": "#/$defs/value" },
+            "thresholds": { "$ref": "#/$defs/thresholds" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Ranked horizontal bars, largest first, each with its value at the end. Use instead of a pie chart.",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "bars" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "items": { "$ref": "#/$defs/parts" },
+            "unit": { "$ref": "#/$defs/value" },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Rows to show. Default 12."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "One whole split into up to six parts. Each block prints its share when wide enough; the legend lists every part with its share.",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "split" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "items": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "maxItems": 6,
+                  "items": { "$ref": "#/$defs/part" }
+                },
+                { "$ref": "#/$defs/bind" }
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Rows with a state icon each, like service health. Neutral rows get a gray dot.",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "status" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "items": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["label", "state"],
+                    "properties": {
+                      "label": { "$ref": "#/$defs/value" },
+                      "state": { "$ref": "#/$defs/state" },
+                      "note": { "$ref": "#/$defs/value" }
+                    }
+                  }
+                },
+                { "$ref": "#/$defs/bind" }
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Entries in time order from the current one on; the current entry is marked Now and the following one Next. Updates every minute.",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "schedule" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "items": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["start", "title"],
+                    "properties": {
+                      "start": {
+                        "$ref": "#/$defs/value",
+                        "description": "\"HH:MM\" on the screen's clock, or a full ISO date and time."
+                      },
+                      "end": {
+                        "$ref": "#/$defs/value",
+                        "description": "Default: when the next entry starts, else an hour later."
+                      },
+                      "title": { "$ref": "#/$defs/value" },
+                      "detail": { "$ref": "#/$defs/value" }
+                    }
+                  }
+                },
+                { "$ref": "#/$defs/bind" }
+              ]
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "description": "Entries to show. Default 5."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "\"Now serving\" display: the current number large, the recently called ones below.",
+          "additionalProperties": false,
+          "required": ["type", "current"],
+          "properties": {
+            "type": { "const": "queue" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "current": { "$ref": "#/$defs/value" },
+            "recent": { "$ref": "#/$defs/values" },
+            "label": {
+              "$ref": "#/$defs/value",
+              "description": "Default \"Now serving\"."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "One clock per time zone, with a label each. Updates every minute.",
+          "additionalProperties": false,
+          "required": ["type", "zones"],
+          "properties": {
+            "type": { "const": "clocks" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "zones": {
+              "type": "array",
+              "maxItems": 12,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["label"],
+                "properties": {
+                  "label": { "$ref": "#/$defs/value" },
+                  "timezone": {
+                    "type": "string",
+                    "description": "IANA time zone, like \"Europe/London\"."
+                  },
+                  "zone": {
+                    "type": "string",
+                    "description": "Older name for `timezone`."
+                  }
+                },
+                "oneOf": [
+                  { "required": ["timezone"] },
+                  { "required": ["zone"] }
+                ]
+              }
+            },
+            "hour12": { "type": "boolean" }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Images that swap instantly on a timer, no transition. The next image is preloaded.",
+          "additionalProperties": false,
+          "required": ["type", "images"],
+          "properties": {
+            "type": { "const": "slideshow" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "images": { "$ref": "#/$defs/values" },
+            "seconds": {
+              "type": "number",
+              "minimum": 3,
+              "maximum": 3600,
+              "description": "Seconds per image. Default 10."
+            },
+            "fit": { "enum": ["cover", "contain"] }
+          }
+        },
+        {
+          "type": "object",
+          "description": "QR code, black on white with a quiet zone so phones can scan it, sized to fit the zone.",
+          "additionalProperties": false,
+          "required": ["type", "value"],
+          "properties": {
+            "type": { "const": "qr" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "value": {
+              "$ref": "#/$defs/value",
+              "description": "Text or URL to encode."
+            },
+            "label": {
+              "$ref": "#/$defs/value",
+              "description": "Caption under the code, like \"Scan to book\"."
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Splits a zone into parts holding other components, equal unless parts set weight. Nests at most 4 deep.",
+          "additionalProperties": false,
+          "required": ["type", "items"],
+          "properties": {
+            "type": { "const": "stack" },
+            "surface": { "$ref": "#/$defs/surface" },
+            "title": { "$ref": "#/$defs/title" },
+            "icon": { "$ref": "#/$defs/titleIcon" },
+            "size": { "$ref": "#/$defs/size" },
+            "weight": { "$ref": "#/$defs/weight" },
+            "direction": {
+              "enum": ["row", "column"],
+              "description": "Default column. A row of three or more parts too narrow to read wraps into two columns."
+            },
+            "items": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/component" }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

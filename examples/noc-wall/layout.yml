@@ -1,0 +1,63 @@
+# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# Network operations wall: six zones, dark.
+colors:
+  scheme: dark
+
+layout:
+  flow:
+    - { zone: head, span: 8, height: 120px }
+    - { zone: clock, span: 4, height: 120px }
+    - { zone: err, span: 3, height: 1 }
+    - { zone: p99, span: 3, height: 1 }
+    - { zone: svc, span: 6, height: 1 }
+    - { zone: inc, span: 12, height: 1 }
+
+alert:
+  text: { bind: /alert }
+  title: Major incident
+  state: danger
+
+zones:
+  head:
+    type: heading
+    title: Network operations
+    text: Global edge and core
+  clock:
+    type: clock
+    surface: raised
+    show_date: true
+    hour12: false
+  err:
+    type: stat
+    title: Error rate
+    value: { bind: /kpi/error_rate }
+    unit: '%'
+    state: { bind: /kpi/error_state }
+    trend: up
+    delta: '+0.04'
+    good_when: down
+  p99:
+    type: stat
+    title: p99 latency
+    value: { bind: /kpi/p99 }
+    unit: ms
+    trend: down
+    delta: -18 ms
+    good_when: down
+    spark: { bind: /kpi/p99_spark }
+  svc:
+    type: status
+    title: Services
+    items:
+      - { label: Edge CDN, state: { bind: /svc/cdn } }
+      - { label: Sign-in, state: { bind: /svc/auth } }
+      - { label: Core API, state: { bind: /svc/api }, note: eu-west slow }
+      - { label: Payments, state: { bind: /svc/payments } }
+      - { label: Postgres, state: { bind: /svc/db }, note: lag 4 s }
+      - { label: Office VPN, state: { bind: /svc/vpn }, note: down }
+  inc:
+    type: table
+    title: Open incidents
+    columns: [Sev, Incident, Age]
+    align: [start, start, end]
+    rows: { bind: /incidents }

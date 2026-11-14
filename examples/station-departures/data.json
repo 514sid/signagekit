@@ -1,0 +1,24 @@
+{
+  "alert": {
+    "level": "warning",
+    "icon": "delay",
+    "title": "Delays to Amsterdam",
+    "message": "Signal fault near Breukelen. Allow 15 minutes extra.",
+    "mode": "banner"
+  },
+  "departures": [
+    ["14:08", "Amsterdam Centraal", 5, "+12 min"],
+    ["14:12", "Rotterdam Centraal", 6, "On time"],
+    ["14:17", "Arnhem Centraal", 4, "On time"],
+    ["14:20", "Den Haag Centraal", 7, "Cancelled"],
+    ["14:23", "Schiphol Airport", 5, "+12 min"],
+    ["14:28", "Eindhoven Centraal", 6, "On time"],
+    ["14:34", "Amersfoort Centraal", 4, "On time"],
+    ["14:38", "Amsterdam Centraal", 5, "+8 min"]
+  ],
+  "messages": [
+    "Lift to platform 6 out of service",
+    "Mind the gap",
+    "Lost property at the service desk, hall 2"
+  ]
+}

@@ -1,0 +1,65 @@
+---
+import Base from '../../layouts/Base.astro'
+import { DEMO_NOW, examples, GROUPS } from '../../lib/examples'
+import { REPO } from '../../lib/docs'
+
+const all = examples()
+const link = 'text-accent underline underline-offset-2 hover:text-accent-hover'
+const groups = [...GROUPS.map(([title]) => title), 'More']
+  .map((title) => ({ title, items: all.filter((e) => e.group === title) }))
+  .filter((g) => g.items.length)
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+---
+
+<Base title="Examples" description="Example signagekit screens, each with its layout and data." section="examples">
+  <main id="main" class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6">
+    <h1 class="text-4xl font-bold tracking-tight">Examples</h1>
+    <p class="mt-4 max-w-[62ch] text-lg text-muted">
+      Each example is a folder with a layout and a data file. Open one to see it at every resolution and edit it, or
+      read its files on GitHub. They are all in <a class={link} href={`${REPO}/tree/main/examples`}>examples/</a> and listed in <a class={link} href="/examples/index.json">index.json</a>.
+    </p>
+
+    {
+      groups.map((g) => (
+        <section aria-labelledby={`g-${slug(g.title)}`} class="mt-14">
+          <h2 id={`g-${slug(g.title)}`} class="mb-5 text-lg font-semibold tracking-tight">
+            {g.title}
+          </h2>
+          <ul class="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-x-5 gap-y-8">
+            {g.items.map((e) => (
+              <li>
+                <a
+                  class="group block rounded-lg"
+                  href={`/preview/?example=${encodeURIComponent(e.id)}&mode=sizes&now=${DEMO_NOW}`}
+                >
+                  <div
+                    class:list={[
+                      'thumb pointer-events-none relative mb-3 aspect-video overflow-hidden rounded-lg border border-line bg-soft group-hover:border-muted',
+                      e.portrait && 'portrait flex justify-center',
+                    ]}
+                    data-layout={e.layout}
+                    data-data={e.data ?? undefined}
+                    data-now={DEMO_NOW}
+                  />
+                  <span class="block font-semibold leading-snug group-hover:text-accent group-hover:underline">
+                    {e.title}
+                  </span>
+                </a>
+                <span class="mt-0.5 block text-sm text-muted">{e.types.join(', ')}</span>
+                <a
+                  class="mt-1 inline-block font-mono text-sm text-accent underline-offset-2 hover:text-accent-hover hover:underline"
+                  href={e.sourceUrl}
+                >
+                  examples/{e.id}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </main>
+  <script>
+    import '../../scripts/examples.ts'
+  </script>
+</Base>

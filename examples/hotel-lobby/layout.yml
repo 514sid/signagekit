@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# Sparse lobby screen: four zones, light scheme, landscape.
+colors:
+  scheme: light
+  accent: '#0f5132'
+
+layout:
+  design: landscape
+  flow:
+    - { zone: head, span: 12, height: 200px }
+    - { zone: time, span: 4, height: 1 }
+    - { zone: guide, span: 4, height: 1 }
+    - { zone: desk, span: 4, height: 1 }
+
+zones:
+  head: { type: heading, title: Lobby, text: Welcome to Harbor House, align: start }
+  time: { type: clock, title: Local time, surface: raised, show_date: true, hour12: false }
+  guide:
+    type: qr
+    title: Guest guide
+    value: { bind: /guest_url }
+    label: Wi-Fi, room service and checkout
+  desk:
+    type: text
+    title: Front desk
+    surface: accent
+    text: { bind: /desk_note }
+    fit: true
+    align: start

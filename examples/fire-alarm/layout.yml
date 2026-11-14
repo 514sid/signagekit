@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# St. Mary's Hospital main entrance: visitor information, with a fire alarm
+# takeover bound to /alert. Clear the alert by setting /alert to null.
+colors:
+  scheme: light
+  accent: '#0b5cad'
+
+layout:
+  design: landscape
+  flow:
+    - { zone: head, span: 9, height: 170px }
+    - { zone: clock, span: 3, height: 170px }
+    - { zone: hours, span: 7, height: 2 }
+    - { zone: info, span: 5, height: 2 }
+
+zones:
+  head: { type: heading, text: Welcome to St. Mary's }
+  clock: { type: clock, surface: raised, show_date: true }
+  hours:
+    type: table
+    title: Visiting hours
+    columns: [Ward, Hours]
+    align: [start, end]
+    rows: { bind: /hours }
+  info:
+    type: list
+    title: Visitor notices
+    items: { bind: /notices }
+
+alert: { bind: /alert }

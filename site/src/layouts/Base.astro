@@ -1,0 +1,87 @@
+---
+// `bare` pages are tools that fill the window and get no header or footer.
+import '../styles/global.css'
+import { REPO, NPM } from '../lib/docs'
+
+interface Props {
+  title: string
+  description: string
+  section?: 'home' | 'docs' | 'examples' | 'preview'
+  bare?: boolean
+}
+
+const { title, description, section, bare = false } = Astro.props
+const full = section === 'home' ? `signagekit: ${title}` : `${title} · signagekit`
+const nav = [
+  { key: 'docs', label: 'Docs', href: '/docs/' },
+  { key: 'examples', label: 'Examples', href: '/examples/' },
+  { key: 'preview', label: 'Preview', href: '/preview/?mode=edit' },
+]
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{full}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body class:list={['min-h-screen', !bare && 'flex flex-col']}>
+    {
+      !bare && (
+        <>
+          <a
+            href="#main"
+            class="absolute -top-12 left-4 z-50 rounded bg-fg px-3 py-2 text-bg focus:top-2"
+          >
+            Skip to content
+          </a>
+          <header class="sticky top-0 z-40 border-b border-line bg-bg">
+            <div class="mx-auto flex h-14 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+              <a
+                href="/"
+                class="font-bold tracking-tight text-fg hover:text-accent"
+              >
+                signagekit
+              </a>
+              <nav aria-label="Main" class="flex items-center gap-1 text-sm">
+                {nav.map((n) => (
+                  <a
+                    href={n.href}
+                    aria-current={n.key === section ? 'page' : undefined}
+                    class="rounded-md px-2.5 py-1.5 text-muted hover:bg-soft hover:text-fg aria-[current=page]:font-semibold aria-[current=page]:text-fg"
+                  >
+                    {n.label}
+                  </a>
+                ))}
+                <a
+                  href={REPO}
+                  class="rounded-md px-2.5 py-1.5 text-muted hover:bg-soft hover:text-fg"
+                >
+                  GitHub
+                </a>
+              </nav>
+            </div>
+          </header>
+        </>
+      )
+    }
+    <slot />
+    {
+      !bare && (
+        <footer class="mt-auto border-t border-line">
+          <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm text-muted sm:px-6">
+            <p>signagekit by 514sid. MIT license.</p>
+            <p class="flex gap-4">
+              <a class="hover:text-fg" href={NPM}>npm</a>
+              <a class="hover:text-fg" href={REPO}>GitHub</a>
+              <a class="hover:text-fg" href="/schema.json">Schema</a>
+            </p>
+          </div>
+        </footer>
+      )
+    }
+  </body>
+</html>

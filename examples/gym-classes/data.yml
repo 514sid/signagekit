@@ -1,0 +1,17 @@
+# Leeds is on GMT in November, so Z matches local time.
+next_at: '2026-11-14T14:00:00Z'
+next_label: Spin Power, Studio 1
+spots_left: 3
+spots_label: Book in the app
+classes:
+  - ['14:00', Spin Power, Studio 1, Dani, 3 left]
+  - ['14:30', Yoga Flow, Studio 2, Mei, 8 left]
+  - ['15:15', HIIT 45, Studio 1, Marcus, 11 left]
+  - ['16:00', Pilates Core, Studio 2, Sofia, Full]
+  - ['17:00', Boxfit, Studio 3, Jayden, 6 left]
+  - ['17:30', Spin Endurance, Studio 1, Dani, 9 left]
+  - ['18:00', Stretch and Restore, Studio 2, Mei, 14 left]
+messages:
+  - Towels at the front desk
+  - Late cancellations after 2 hours are charged
+  - Sauna closed for cleaning 15:00 to 15:30

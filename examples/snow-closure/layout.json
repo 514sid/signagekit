@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "colors": { "scheme": "light", "accent": "#0f766e" },
+  "layout": {
+    "design": "landscape",
+    "flow": [
+      { "zone": "head", "span": 9, "height": "170px" },
+      { "zone": "clock", "span": 3, "height": "170px" },
+      { "zone": "lunch", "span": 6, "height": 2 },
+      { "zone": "info", "span": 6, "height": 2 },
+      { "zone": "news", "height": "110px" }
+    ]
+  },
+  "zones": {
+    "head": { "type": "heading", "text": "Maple Ridge Elementary" },
+    "clock": { "type": "clock", "surface": "raised", "show_date": true },
+    "lunch": {
+      "type": "table",
+      "title": "Lunch menu",
+      "columns": ["Day", "Main"],
+      "rows": { "bind": "/lunch" }
+    },
+    "info": {
+      "type": "list",
+      "title": "This week",
+      "items": { "bind": "/week" }
+    },
+    "news": {
+      "type": "cycle",
+      "surface": "raised",
+      "items": { "bind": "/messages" }
+    }
+  },
+  "alert": { "bind": "/alert" }
+}

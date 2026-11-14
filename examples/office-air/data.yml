@@ -1,0 +1,25 @@
+# Readings from the floor sensors. Every value in YAML data is read as text.
+floor: Floor 3, east wing
+co2:
+  now: 742
+  trend: down
+  delta: -58 since 10:00
+  label: Fresh
+temp:
+  now: 21.8
+  label: Comfortable
+  state: good
+humidity: 46
+rooms:
+  - { label: Harbour, value: 1180, max: 1600 }
+  - { label: Lighthouse, value: 960, max: 1600 }
+  - { label: Quay, value: 812, max: 1600 }
+  - { label: Dockside, value: 655, max: 1600 }
+  - { label: Pier, value: 540, max: 1600 }
+day:
+  hours: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00']
+  co2: [520, 690, 800, 940, 1080, 870, 742]
+tips:
+  - Harbour is getting stuffy, open the window or take a break
+  - Windows on the south side open with the grey handle
+  - Plants on this floor are watered on Mondays and Thursdays

@@ -1,0 +1,20 @@
+{
+  "alert": {
+    "level": "warning",
+    "icon": "storm",
+    "title": "Storm warning",
+    "message": "Gusts up to 90 km/h until 18:00. Routes 14 and 22 may not run.",
+    "footer": "Check the operator app before you travel.",
+    "mode": "banner",
+    "until": "2026-11-14T18:00:00Z"
+  },
+  "departures": [
+    ["09:40", "14", "Harbour Quay", "Late 10 min"],
+    ["09:45", "22", "Ferndale", "Cancelled"],
+    ["09:55", "7", "Canal Street", "On time"],
+    ["10:05", "31", "Airport", "On time"],
+    ["10:15", "9", "Westgate", "Cancelled"]
+  ],
+  "running": 38,
+  "cancelled": 3
+}

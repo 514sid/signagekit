@@ -1,0 +1,54 @@
+colors:
+  scheme: dark
+  accent: '#f97316'
+
+layout:
+  design: landscape
+  gap: 2
+  flow:
+    - { zone: hero, span: 8, height: 3 }
+    - { zone: clock, span: 4, height: 1 }
+    - { zone: offer, span: 4, height: 2 }
+    - { zone: featured, span: 4, height: 2 }
+    - { zone: join, span: 4, height: 2 }
+    - { zone: ticker, span: 12, height: 70px }
+
+zones:
+  hero:
+    type: slideshow
+    images: { bind: /promo/images }
+    seconds: 8
+    fit: contain
+  clock:
+    type: clock
+    title: Store time
+    show_date: true
+    hour12: false
+  offer:
+    type: stack
+    title: This week
+    direction: column
+    items:
+      - type: text
+        text: { bind: /offer/headline }
+        fit: true
+        align: start
+      - type: countdown
+        to: { bind: /offer/ends }
+        label: Ends
+  featured:
+    type: image
+    title: Staff pick
+    src: { bind: /featured/src }
+    fit: contain
+    alt: Staff pick of the week
+  join:
+    type: qr
+    title: Join the club
+    value: { bind: /join/url }
+    label: Scan for double points
+  ticker:
+    type: cycle
+    items: { bind: /ticker }
+    seconds: 9
+    align: center

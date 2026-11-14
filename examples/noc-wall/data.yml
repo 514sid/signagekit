@@ -1,0 +1,18 @@
+alert: ''
+kpi:
+  error_rate: 0.31
+  error_state: warning
+  p99: 412
+  p99_spark: [530, 510, 498, 470, 455, 430, 412]
+svc:
+  cdn: good
+  auth: good
+  api: warning
+  payments: good
+  db: warning
+  vpn: danger
+incidents:
+  - [SEV2, VPN ams-02 saturated, 41 m]
+  - [SEV3, eu-west API over SLO, 36 m]
+  - [SEV3, Replica lag on pg-replica-04, 22 m]
+  - [SEV4, Certificate expires in 9 days, 3 d]

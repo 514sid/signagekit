@@ -1,0 +1,281 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/* Pages build part of their UI in scripts; Tailwind reads them for classes. */
+@source '../scripts';
+
+/* Colors follow the system's light or dark setting. Every text pair here
+   is at least 4.5:1, focus rings at least 3:1. */
+:root {
+  --bg: #ffffff;
+  --fg: #14171b;
+  --muted: #59616c;
+  --line: #e3e6ea;
+  --soft: #f5f6f8;
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --on-accent: #ffffff;
+  --error: #b42318;
+  --warning: #8a5300;
+  --ok: #18794e;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1114;
+    --fg: #e8eaed;
+    --muted: #9ba3ad;
+    --line: #262a31;
+    --soft: #171a1f;
+    --accent: #7ea6ff;
+    --accent-hover: #a9c3ff;
+    --on-accent: #0f1114;
+    --error: #ff8f85;
+    --warning: #f2c26b;
+    --ok: #6fd3a0;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-soft: var(--soft);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --color-ok: var(--ok);
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-fg antialiased;
+  }
+
+  :focus-visible {
+    @apply rounded-xs outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+.prose {
+  --tw-prose-body: var(--fg);
+  --tw-prose-headings: var(--fg);
+  --tw-prose-lead: var(--muted);
+  --tw-prose-links: var(--accent);
+  --tw-prose-bold: var(--fg);
+  --tw-prose-counters: var(--muted);
+  --tw-prose-bullets: var(--muted);
+  --tw-prose-hr: var(--line);
+  --tw-prose-quotes: var(--muted);
+  --tw-prose-quote-borders: var(--line);
+  --tw-prose-code: var(--fg);
+  --tw-prose-pre-code: var(--fg);
+  --tw-prose-pre-bg: var(--soft);
+  --tw-prose-th-borders: var(--line);
+  --tw-prose-td-borders: var(--line);
+}
+
+.prose :where(code):not(:where(pre *)) {
+  @apply rounded border border-line bg-soft px-1 py-px font-normal;
+}
+
+.prose :where(code):not(:where(pre *))::before,
+.prose :where(code):not(:where(pre *))::after {
+  content: none;
+}
+
+.prose :where(pre) {
+  @apply border border-line;
+}
+
+.prose :where(a) {
+  @apply underline-offset-2 hover:text-accent-hover;
+}
+
+/* Heading anchors that Astro adds ids to; keep them clear of the header. */
+.prose :where(h2, h3) {
+  scroll-margin-top: 5rem;
+}
+
+/* A wide table scrolls on its own instead of widening the page. */
+.prose :where(table) {
+  @apply block max-w-full overflow-x-auto;
+}
+
+.prose :where(td, th) code {
+  @apply whitespace-nowrap;
+}
+
+/* Shiki writes both themes; show the one that matches the system. */
+@media (prefers-color-scheme: dark) {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+}
+
+.astro-code {
+  background-color: var(--soft) !important;
+}
+
+@layer components {
+  .preview.screen {
+    @apply fixed inset-0 grid place-items-center bg-black;
+  }
+
+  .screen-frame {
+    @apply h-full w-full;
+  }
+
+  .scaled {
+    @apply relative flex-none overflow-hidden;
+  }
+
+  .scaled-inner {
+    @apply absolute top-0 left-0 origin-top-left;
+  }
+
+  .preview.sheet {
+    @apply min-h-screen p-6;
+  }
+
+  .sheet-head {
+    @apply mb-6;
+  }
+
+  .sheet-grid {
+    @apply flex flex-wrap items-start gap-x-6 gap-y-8;
+  }
+
+  .sheet-grid figcaption {
+    @apply mt-2 font-mono text-sm text-muted;
+  }
+
+  .sheet-frame {
+    @apply outline outline-line;
+  }
+
+  .problem-list {
+    @apply text-sm;
+  }
+
+  .problem-list p {
+    @apply mb-1.5 font-semibold;
+  }
+
+  .problem-list .ok {
+    @apply text-ok;
+  }
+
+  .problem-list ul {
+    @apply font-mono text-[0.8125rem];
+  }
+
+  .problem-list li {
+    @apply py-0.5;
+  }
+
+  .problem-list .error {
+    @apply text-error before:mr-2 before:font-bold before:content-['error'];
+  }
+
+  .problem-list .warning {
+    @apply text-warning before:mr-2 before:font-bold before:content-['warning'];
+  }
+
+  .preview.failed {
+    @apply grid min-h-screen place-items-center p-6;
+  }
+
+  .failure {
+    @apply max-w-xl space-y-3;
+  }
+
+  .failure h1 {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  .failure a {
+    @apply text-accent underline underline-offset-2 hover:text-accent-hover;
+  }
+
+  .failure code {
+    @apply rounded border border-line bg-soft px-1 font-mono text-[0.875em];
+  }
+
+  .preview.editor {
+    @apply grid h-screen grid-rows-[auto_1fr] max-md:h-auto;
+  }
+
+  .editor-bar {
+    @apply flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-line px-4 py-2.5;
+  }
+
+  .editor-bar .brand {
+    @apply mr-2 font-bold tracking-tight text-fg hover:text-accent;
+  }
+
+  .segmented {
+    @apply inline-flex overflow-hidden rounded-md border border-line text-sm;
+  }
+
+  .segmented button {
+    @apply cursor-pointer px-3 py-1 text-muted hover:bg-soft hover:text-fg focus-visible:-outline-offset-3 aria-pressed:bg-fg aria-pressed:text-bg;
+  }
+
+  .segmented button + button {
+    @apply border-l border-line;
+  }
+
+  .bar-field {
+    @apply inline-flex items-center gap-2 text-sm text-muted;
+  }
+
+  .bar-field select {
+    @apply rounded-md border border-line bg-bg px-2 py-1 text-fg hover:border-muted;
+  }
+
+  .bar-link {
+    @apply ml-auto text-sm text-accent underline-offset-2 hover:text-accent-hover hover:underline;
+  }
+
+  .bar-button {
+    @apply cursor-pointer rounded-md border border-line px-3 py-1 text-sm text-muted hover:bg-soft hover:text-fg;
+  }
+
+  .editor-body {
+    @apply grid min-h-0 grid-cols-[minmax(20rem,38%)_1fr] max-md:grid-cols-1;
+  }
+
+  .editor-inputs {
+    @apply flex min-h-0 flex-col gap-3 overflow-auto border-r border-line p-4 max-md:border-r-0 max-md:border-b;
+  }
+
+  .editor-inputs .field {
+    @apply flex min-h-40 flex-1 flex-col gap-1.5;
+  }
+
+  .editor-inputs label {
+    @apply text-sm font-semibold;
+  }
+
+  .editor-inputs textarea {
+    @apply flex-1 resize-none rounded-md border border-line bg-soft px-3 py-2.5 font-mono text-[0.8125rem] leading-relaxed text-fg [tab-size:2] focus-visible:border-accent focus-visible:outline-offset-0 max-md:min-h-56;
+  }
+
+  .editor-problems {
+    @apply max-h-[30%] overflow-auto;
+  }
+
+  .editor-stage {
+    @apply flex min-w-0 items-center justify-center bg-soft p-6 max-md:min-h-[60vh];
+  }
+}

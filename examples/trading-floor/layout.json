@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "colors": { "scheme": "dark" },
+  "layout": {
+    "design": "landscape",
+    "flow": [
+      { "zone": "head", "span": 4, "height": "130px" },
+      { "zone": "clocks", "span": 8, "height": "130px" },
+      { "zone": "idx_ftse", "span": 6, "height": 2 },
+      { "zone": "idx_spx", "span": 6, "height": 2 },
+      { "zone": "chart", "span": 6, "height": 4 },
+      { "zone": "movers", "span": 6, "height": 4 },
+      { "zone": "news", "height": "100px" }
+    ]
+  },
+  "zones": {
+    "head": { "type": "heading", "text": "Equities desk" },
+    "clocks": {
+      "type": "clocks",
+      "zones": [
+        { "label": "London", "zone": "Europe/London" },
+        { "label": "New York", "zone": "America/New_York" },
+        { "label": "Tokyo", "zone": "Asia/Tokyo" }
+      ]
+    },
+    "idx_ftse": {
+      "type": "stat",
+      "title": "FTSE 100",
+      "value": { "bind": "/idx/ftse/value" },
+      "trend": { "bind": "/idx/ftse/trend" },
+      "delta": { "bind": "/idx/ftse/delta" },
+      "good_when": "up",
+      "spark": { "bind": "/idx/ftse/spark" }
+    },
+    "idx_spx": {
+      "type": "stat",
+      "title": "S&P 500",
+      "value": { "bind": "/idx/spx/value" },
+      "trend": { "bind": "/idx/spx/trend" },
+      "delta": { "bind": "/idx/spx/delta" },
+      "good_when": "up",
+      "spark": { "bind": "/idx/spx/spark" }
+    },
+    "chart": {
+      "type": "chart",
+      "kind": "line",
+      "title": "Intraday index, % change",
+      "labels": { "bind": "/chart/labels" },
+      "series": [
+        { "name": "FTSE 100", "values": { "bind": "/chart/ftse" } },
+        { "name": "S&P 500", "values": { "bind": "/chart/spx" } }
+      ]
+    },
+    "movers": {
+      "type": "table",
+      "title": "Biggest movers",
+      "columns": ["Name", "Last", "Chg %"],
+      "align": ["start", "end", "end"],
+      "rows": { "bind": "/movers" },
+      "page_rows": 5,
+      "seconds": 8
+    },
+    "news": { "type": "cycle", "surface": "raised", "seconds": 6, "items": { "bind": "/messages" } }
+  }
+}

@@ -1,0 +1,25 @@
+# Every value is read as text.
+oee:
+  value: 78.4
+  state: warning
+  trend: up
+  delta: +1.6 pts
+  spark: [71, 73, 72, 75, 77, 76, 78.4]
+  hourly: [74, 76, 72, 79, 81, 77, 78]
+  target: [85, 85, 85, 85, 85, 85, 85]
+hours: ['06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00']
+lines:
+  - { label: Line 1 PET 0.5 L, value: 412, max: 480, state: good }
+  - { label: Line 2 PET 1.5 L, value: 301, max: 360, state: good }
+  - { label: Line 3 glass, value: 188, max: 300, state: warning }
+  - { label: Line 4 cans, value: 0, max: 600, state: danger }
+downtime:
+  - { label: Changeover, value: 52 }
+  - { label: Glue pump, value: 41 }
+  - { label: No preforms, value: 27 }
+  - { label: Micro stops, value: 19 }
+  - { label: CIP cleaning, value: 15 }
+messages:
+  - 'Changeover on Line 3 at 13:00, bring format parts'
+  - 'Forklift route B closed until 15:00'
+  - 'QA sample every 30 min, record on tablet'

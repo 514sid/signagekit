@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# OEE board for a bottling plant floor, landscape.
+colors:
+  scheme: dark
+  accent: '#0ea5e9'
+
+layout:
+  design: landscape
+  gap: 2
+  flow:
+    - { zone: head, span: 9, height: 120px }
+    - { zone: clock, span: 3, height: 120px }
+    - { zone: oee, span: 4, height: 2 }
+    - { zone: trend, span: 8, height: 2 }
+    - { zone: lines, span: 6, height: 3 }
+    - { zone: downtime, span: 6, height: 3 }
+    - { zone: news, height: 100px }
+
+zones:
+  head: { type: heading, text: Filling hall 2 OEE, surface: raised }
+  clock: { type: clock, surface: raised }
+  oee:
+    type: stat
+    title: OEE today
+    value: { bind: /oee/value }
+    unit: '%'
+    state: { bind: /oee/state }
+    trend: { bind: /oee/trend }
+    delta: { bind: /oee/delta }
+    good_when: up
+    spark: { bind: /oee/spark }
+  trend:
+    type: chart
+    kind: line
+    title: OEE by hour vs target
+    labels: { bind: /hours }
+    series:
+      - { name: OEE, values: { bind: /oee/hourly } }
+      - { name: Target, values: { bind: /oee/target } }
+  lines:
+    type: meters
+    title: Line speed
+    unit: bpm
+    items: { bind: /lines }
+  downtime:
+    type: bars
+    title: Downtime today
+    unit: min
+    limit: 5
+    items: { bind: /downtime }
+  news:
+    type: cycle
+    surface: raised
+    seconds: 6
+    items: { bind: /messages }

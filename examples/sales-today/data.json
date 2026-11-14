@@ -1,0 +1,28 @@
+{
+  "kpi": {
+    "revenue": 134210,
+    "vs_target": 105,
+    "target_label": "Day target 128K",
+    "state": "good",
+    "trend": "up",
+    "delta": "+2.4 pts"
+  },
+  "hourly": {
+    "labels": ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"],
+    "revenue": [9.1, 12.4, 14.8, 16.2, 17.5, 19.9, 21.3, 23.0]
+  },
+  "reps": [
+    { "label": "Dana Reyes", "value": 31.2 },
+    { "label": "Marcus Okafor", "value": 28.4 },
+    { "label": "Lena Brandt", "value": 26.9 },
+    { "label": "Sam Whitfield", "value": 22.1 },
+    { "label": "Aiko Tanaka", "value": 19.7 },
+    { "label": "Joel Mensah", "value": 17.4 }
+  ],
+  "regions": [
+    { "label": "North", "value": 104 },
+    { "label": "East", "value": 97 },
+    { "label": "South", "value": 78 },
+    { "label": "West", "value": 62 }
+  ]
+}

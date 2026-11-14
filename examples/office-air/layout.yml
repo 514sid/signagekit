@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# Air quality on an office floor, for the screen by the kitchen.
+version: 1
+colors:
+  scheme: dark
+  accent: '#0ea5e9'
+
+layout:
+  flow:
+    - { zone: head, span: 9, height: 130px }
+    - { zone: clock, span: 3, height: 130px }
+    - { zone: co2, span: 4, height: 2 }
+    - { zone: temp, span: 4, height: 2 }
+    - { zone: humidity, span: 4, height: 2 }
+    - { zone: rooms, span: 5, height: 3 }
+    - { zone: today, span: 7, height: 3 }
+    - { zone: tips, height: 100px }
+
+zones:
+  head:
+    type: heading
+    title: Air quality
+    text: { bind: /floor }
+  clock:
+    type: clock
+    surface: raised
+    show_date: true
+  co2:
+    type: stat
+    title: CO₂, open plan
+    value: { bind: /co2/now }
+    unit: ppm
+    thresholds: { warning: 1000, danger: 1400 }
+    trend: { bind: /co2/trend }
+    delta: { bind: /co2/delta }
+    good_when: down
+    label: { bind: /co2/label }
+  temp:
+    type: stat
+    title: Temperature
+    value: { bind: /temp/now }
+    unit: °C
+    label: { bind: /temp/label }
+    state: { bind: /temp/state }
+  humidity:
+    type: meter
+    title: Humidity
+    value: { bind: /humidity }
+    max: 100
+    unit: '%'
+    thresholds: { warning: 60, danger: 70 }
+  rooms:
+    type: meters
+    title: CO₂ by meeting room, ppm
+    items: { bind: /rooms }
+    thresholds: { warning: 1000, danger: 1400 }
+  today:
+    type: chart
+    kind: area
+    title: CO₂ today, open plan
+    labels: { bind: /day/hours }
+    series:
+      - name: CO₂
+        values: { bind: /day/co2 }
+    target: 1000
+    target_label: Open a window above 1000
+  tips:
+    type: cycle
+    surface: raised
+    items: { bind: /tips }
+    seconds: 8
