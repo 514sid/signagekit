@@ -33,7 +33,24 @@ jobs:
             echo "Release tag ${GITHUB_REF_NAME} does not match package.json version ${version}"
             exit 1
           fi
-      # Trusted publishing needs npm 11.5.1 or newer.
-      - run: npm install -g npm@11.13.0
-      # prepublishOnly runs every check and the build first.
-      - run: npm publish --access public
+      # Staged publishing, which npm may apply to any publish, needs npm 11.15.0
+      # or newer; trusted publishing needs 11.5.1.
+      - run: npm install -g npm@11.21.1
+      # A release for a version already on npm (or still being processed
+      # there) is a record on GitHub only, not a failure. prepublishOnly runs
+      # every check and the build first.
+      - name: Publish
+        run: |
+          name="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            echo "${name}@${version} is already on npm, nothing to publish"
+            exit 0
+          fi
+          if ! npm publish --access public 2>&1 | tee publish.log; then
+            if grep -q "cannot publish over the previously published" publish.log; then
+              echo "${name}@${version} is already on npm, nothing to publish"
+              exit 0
+            fi
+            exit 1
+          fi
