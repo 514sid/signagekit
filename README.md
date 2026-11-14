@@ -96,11 +96,11 @@ Releases publish to npm from GitHub Actions through npm's trusted publishing, so
 2. Commit and push.
 3. Create a GitHub release tagged with the version, like `v0.2.0`.
 
-The publish workflow checks that the tag matches `package.json`, runs every check and the build, and publishes. A release for a version that's already on npm publishes nothing.
+4. Approve the staged version under Staged Packages on npmjs.com, or with `npm stage approve`. Approving needs two-factor authentication.
 
-npm may hold a new version as staged until a maintainer approves it, either under Staged Packages on npmjs.com or with `npm stage approve`. Approving needs two-factor authentication.
+The publish workflow checks that the tag matches `package.json`, runs every check and the build, and stages the version on npm. Nothing goes live until it's approved. A release for a version that's already on npm stages nothing.
 
-The trusted publisher is set once, in the package settings on npmjs.com: GitHub Actions, user `514sid`, repository `signagekit`, workflow `publish.yml`.
+The trusted publisher is set once, in the package settings on npmjs.com: GitHub Actions, user `514sid`, repository `signagekit`, workflow `publish.yml`, no environment, with `npm publish` and `npm dist-tag` both left unallowed.
 
 ## License
 

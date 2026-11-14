@@ -1,6 +1,6 @@
-name: Publish to npm
+name: Stage on npm
 
-# Publishing a GitHub release publishes that version to npm. It uses npm's
+# Publishing a GitHub release stages that version on npm. It uses npm's
 # trusted publishing: GitHub proves the run's identity, so no npm token is
 # stored here, and npm records provenance linking the release to this commit.
 
@@ -33,13 +33,14 @@ jobs:
             echo "Release tag ${GITHUB_REF_NAME} does not match package.json version ${version}"
             exit 1
           fi
-      # Staged publishing, which npm may apply to any publish, needs npm 11.15.0
-      # or newer; trusted publishing needs 11.5.1.
+      - name: Check and build
+        run: bun run prepublishOnly
+      # npm stage publish needs npm 11.15.0 or newer.
       - run: npm install -g npm@11.21.1
-      # A release for a version already on npm (or still being processed
-      # there) is a record on GitHub only, not a failure. prepublishOnly runs
-      # every check and the build first.
-      - name: Publish
+      # The version is staged, not published: it goes live only once a
+      # maintainer approves it on npmjs.com with 2FA. A release for a version
+      # already on npm is a record on GitHub only, not a failure.
+      - name: Stage on npm
         run: |
           name="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
@@ -47,7 +48,7 @@ jobs:
             echo "${name}@${version} is already on npm, nothing to publish"
             exit 0
           fi
-          if ! npm publish --access public 2>&1 | tee publish.log; then
+          if ! npm stage publish . --access public --ignore-scripts 2>&1 | tee publish.log; then
             if grep -q "cannot publish over the previously published" publish.log; then
               echo "${name}@${version} is already on npm, nothing to publish"
               exit 0
