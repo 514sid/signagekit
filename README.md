@@ -88,6 +88,16 @@ bun run site:build
 
 It's live at https://signagekit.514sid.com, deployed by Cloudflare Pages from this repository: build command `npm run site:build`, output directory `site/dist`, root directory left empty, and `NODE_VERSION` set to 22.23.4 or newer for Astro. `previewUrl()` and `signagekit url` link to its preview page by default; pass `base` or `--base` to link to a copy hosted elsewhere.
 
+## Releasing
+
+Releases publish to npm from GitHub Actions through npm's trusted publishing, so no npm token is stored anywhere, and each version on npm links back to the commit that built it.
+
+1. Update `version` in `package.json` and add the changes to `CHANGELOG.md`.
+2. Commit and push.
+3. Create a GitHub release tagged with the version, like `v0.2.0`.
+
+The publish workflow checks that the tag matches `package.json`, runs every check and the build, and publishes.
+
 ## License
 
 MIT. The icons are from [Lucide](https://lucide.dev), under the ISC license; see [LICENSE](LICENSE).
