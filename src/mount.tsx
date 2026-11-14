@@ -10,7 +10,7 @@ import { Problems, Screen } from './components'
 import { fitAll } from './fit'
 import { canvasSize, toGrid } from './flow'
 import { settled } from './ready'
-import { setFixedTime, setTimeContext } from './time'
+import { TimeContext, type TimeOptions } from './time'
 import { preloadViews } from './views'
 
 export interface MountOptions {
@@ -91,6 +91,7 @@ function draw(
   r: CheckResult,
   width: number,
   options: MountOptions,
+  time: TimeOptions,
   reported: string[],
 ): void {
   const palette = resolveColors(
@@ -102,12 +103,14 @@ function draw(
   render(
     <>
       {r.doc && (
-        <Screen
-          zones={r.doc.zones}
-          layout={toGrid(r.doc.layout, width)}
-          alert={r.doc.alert}
-          data={r.data}
-        />
+        <TimeContext.Provider value={time}>
+          <Screen
+            zones={r.doc.zones}
+            layout={toGrid(r.doc.layout, width)}
+            alert={r.doc.alert}
+            data={r.data}
+          />
+        </TimeContext.Provider>
       )}
       {options.showProblems && (
         <Problems errors={[...r.errors, ...reported]} warnings={r.warnings} />
@@ -126,8 +129,13 @@ export async function mount(
   container: HTMLElement,
   options: MountOptions,
 ): Promise<ScreenHandle> {
-  setTimeContext(options.timeZone, options.locale)
-  setFixedTime(options.now)
+  // Each screen keeps its own time zone, locale and fixed time, so several
+  // screens on one page don't overwrite each other's.
+  const time: TimeOptions = {
+    timeZone: options.timeZone,
+    locale: options.locale,
+    now: options.now,
+  }
   const opts = {
     scheme: options.scheme,
     accent: options.accent,
@@ -139,7 +147,7 @@ export async function mount(
   let r = await check(layout, options.data, opts)
   const reported: string[] = []
 
-  const paint = () => draw(canvas, r, width, options, reported)
+  const paint = () => draw(canvas, r, width, options, time, reported)
 
   await preload(r)
   paint()

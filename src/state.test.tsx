@@ -85,3 +85,31 @@ describe('stat trends', () => {
     ])
   })
 })
+
+describe('states named like Object keys', () => {
+  afterEach(() => (document.body.innerHTML = ''))
+
+  test('a bound state or trend like "constructor" is neutral', () => {
+    const c = stat({ state: { bind: '/s' }, trend: { bind: '/t' } }) as never
+    expect(stateOf(c, { s: 'constructor' })).toBe('neutral')
+    expect(trendOf(c, { t: 'toString' })).toBeNull()
+  })
+
+  test('renders a stat with such data instead of throwing', () => {
+    const { doc } = validate({
+      layout: { areas: ['a'] },
+      zones: { a: stat({ state: { bind: '/s' }, trend: { bind: '/t' } }) },
+    })
+    const root = document.createElement('div')
+    document.body.appendChild(root)
+    render(
+      <Screen
+        zones={doc!.zones}
+        layout={toGrid(doc!.layout, 1920)}
+        data={{ s: 'constructor', t: 'toString' }}
+      />,
+      root,
+    )
+    expect(root.querySelector('.c-stat')).not.toBeNull()
+  })
+})

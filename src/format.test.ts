@@ -2,6 +2,12 @@ import { describe, expect, test } from 'bun:test'
 import { formatValue } from './stat'
 
 describe('formatValue', () => {
+  test('keeps leading zeros, which mark a code', () => {
+    expect(formatValue('042')).toBe('042')
+    expect(formatValue('007', 'full')).toBe('007')
+    expect(formatValue('0.5')).toBe('0.5')
+  })
+
   test('shortens numbers from 10,000 up', () => {
     expect(formatValue('1000000')).toBe('1M')
     expect(formatValue('12,900')).toBe('12.9K')

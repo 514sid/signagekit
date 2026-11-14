@@ -10,6 +10,7 @@ import { layout } from './validate-layout'
 import { ICON_NAMES, isIcon } from './icons'
 import type { Component, ComponentType, ScreenDoc } from './types'
 import {
+  has,
   isBind,
   isObj,
   list,
@@ -51,13 +52,17 @@ function properties(
   warns: string[],
 ): void {
   for (const [k, check] of Object.entries(spec.required)) {
-    if (!(k in c)) errs.push(`${at}.${k}: required for ${c.type}`)
-    else check(c[k], `${at}.${k}`, errs)
+    if (!has(c, k)) errs.push(`${at}.${k}: required for ${c.type}`)
+    else check(c[k], `${at}.${k}`, errs, warns)
   }
   for (const [k, v] of Object.entries(c)) {
-    if (k === 'type' || k in spec.required) continue
-    const check = spec.optional[k] ?? SHARED[k]
-    if (check) check(v, `${at}.${k}`, errs)
+    if (k === 'type' || has(spec.required, k)) continue
+    const check = has(spec.optional, k)
+      ? spec.optional[k]
+      : has(SHARED, k)
+        ? SHARED[k]
+        : undefined
+    if (check) check(v, `${at}.${k}`, errs, warns)
     else warns.push(`${at}.${k}: unknown property for ${c.type}, ignored`)
   }
 }
@@ -82,7 +87,10 @@ function component(
 ): void {
   if (!isObj(c))
     return void errs.push(`${at}: expected an object with a "type"`)
-  const spec = SPECS[c.type as ComponentType]
+  const spec =
+    typeof c.type === 'string' && has(SPECS, c.type)
+      ? SPECS[c.type as ComponentType]
+      : undefined
   if (!spec) {
     errs.push(
       `${at}.type: unknown component ${JSON.stringify(c.type)}, expected one of ${Object.keys(SPECS).join(', ')}`,
@@ -138,9 +146,14 @@ const alertFields = shape(
 )
 
 /** A bind to an object in the data, or the fields themselves. */
-function alertBlock(v: unknown, at: string, errs: string[]): void {
+function alertBlock(
+  v: unknown,
+  at: string,
+  errs: string[],
+  warns: string[],
+): void {
   if (isBind(v)) return value(v, at, errs)
-  alertFields(v, at, errs)
+  alertFields(v, at, errs, warns)
   if (isObj(v) && !('title' in v) && !('message' in v) && !('text' in v))
     errs.push(`${at}: needs a title or a message`)
 }
@@ -196,7 +209,8 @@ export function validate(input: unknown): Result {
   const colors = colorBlock(input.colors, errors, warnings)
   // A broken alert is dropped, so the screen still renders without it.
   const alertErrors: string[] = []
-  if (input.alert !== undefined) alertBlock(input.alert, 'alert', alertErrors)
+  if (input.alert !== undefined)
+    alertBlock(input.alert, 'alert', alertErrors, warnings)
   errors.push(...alertErrors)
   const alert =
     input.alert !== undefined && alertErrors.length === 0
@@ -232,7 +246,7 @@ export function validate(input: unknown): Result {
     else zones[name] = c as Component
   }
   for (const name of areas) {
-    if (!(name in input.zones))
+    if (!has(input.zones, name))
       warnings.push(`layout: "${name}" has no zone, left empty`)
   }
 

@@ -1,5 +1,4 @@
 import { describe, expect, test } from 'bun:test'
-import { parseArgs } from './cli'
 import { pack, previewUrl, unpack } from './share'
 
 describe('preview links', () => {
@@ -40,24 +39,5 @@ describe('preview links', () => {
 
   test('unpack rejects a damaged value', async () => {
     expect(unpack('not-a-link')).rejects.toThrow()
-  })
-})
-
-describe('parseArgs', () => {
-  test('separates files, valued flags and switches', () => {
-    expect(
-      parseArgs([
-        'a.yml',
-        '--mode',
-        'sizes',
-        '--problems',
-        'b.yml',
-        '--tz',
-        'Europe/Berlin',
-      ]),
-    ).toEqual({
-      files: ['a.yml', 'b.yml'],
-      flags: { mode: 'sizes', problems: true, tz: 'Europe/Berlin' },
-    })
   })
 })

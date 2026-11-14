@@ -97,4 +97,21 @@ describe('mount with a fixed time', () => {
     })
     expect(root.textContent).toContain('09:30')
   })
+
+  test('each screen keeps its own time zone', async () => {
+    const clock = {
+      layout: { areas: ['a'] },
+      zones: { a: { type: 'clock', hour12: false } },
+    }
+    const now = new Date('2026-11-14T09:30:00Z')
+    const [a, b] = [0, 1].map(() =>
+      document.body.appendChild(document.createElement('div')),
+    )
+    const first = await mount(a, { layout: clock, now, timeZone: 'UTC' })
+    await mount(b, { layout: clock, now, timeZone: 'Asia/Tokyo' })
+    // Drawing the first screen again must not pick up the second's zone.
+    await first.update({ data: {} })
+    expect(a.textContent).toContain('09:30')
+    expect(b.textContent).toContain('18:30')
+  })
 })

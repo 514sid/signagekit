@@ -35,6 +35,29 @@ describe('schedule', () => {
   test('skips entries without a readable start', () => {
     expect(upcoming([{ start: 'soon', title: 'X' }], {}, now, 5)).toEqual([])
   })
+
+  test('shows entries that share a start as on now together', () => {
+    const shared = [
+      { start: '09:00', title: 'Room A' },
+      { start: '09:00', title: 'Room B' },
+      { start: '10:00', title: 'Room C' },
+    ]
+    const rows = upcoming(shared, {}, new Date(2026, 10, 14, 9, 15), 5)
+    expect(rows.map((r) => [r.title, r.tag])).toEqual([
+      ['Room A', 'now'],
+      ['Room B', 'now'],
+      ['Room C', 'next'],
+    ])
+  })
+
+  test('never ends a time of day at an entry with a full date', () => {
+    const mixed = [
+      { start: '09:00', title: 'Standup' },
+      { start: '2030-01-01T09:00', title: 'Launch' },
+    ]
+    const rows = upcoming(mixed, {}, new Date(2026, 10, 14, 12, 0), 5)
+    expect(rows.map((r) => r.title)).toEqual(['Launch'])
+  })
 })
 
 describe('qr', () => {

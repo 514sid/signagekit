@@ -10,7 +10,13 @@ import { AlertView, useAlert } from './alert'
 import { loadedView, loadView, type AnyView, type LazyType } from './views'
 import { fitMessages } from './fit'
 import { DASH, Empty } from './empty'
-import { formatClock, formatCountdown, formatDate, useMinute } from './time'
+import {
+  formatClock,
+  formatCountdown,
+  formatDate,
+  useMinute,
+  useTimeOptions,
+} from './time'
 
 type Props<T> = { c: T; data: Data }
 type Of<K extends Component['type']> = Extract<Component, { type: K }>
@@ -78,10 +84,11 @@ function Image({ c, data }: Props<Of<'image'>>) {
 
 function Clock({ c }: Props<Of<'clock'>>) {
   const now = useMinute()
+  const t = useTimeOptions()
   return (
     <div class="c-clock" data-fit="line" data-kind="clock">
-      <div class="c-clock-time">{formatClock(now, c.hour12)}</div>
-      {c.show_date && <div class="c-clock-date">{formatDate(now)}</div>}
+      <div class="c-clock-time">{formatClock(now, c.hour12, t)}</div>
+      {c.show_date && <div class="c-clock-date">{formatDate(now, t)}</div>}
     </div>
   )
 }
@@ -152,12 +159,31 @@ type View<K extends Component['type']> = (p: Props<Of<K>>) => JSX.Element | null
  * chunks a document needs, so this normally renders at once; if a chunk is
  * still on its way, the cell stays empty until it arrives.
  */
+const RETRY_MS = 30_000
+
 function Lazy({ c, data }: Props<Component>) {
   const type = c.type as LazyType
   const [View, setView] = useState<AnyView | undefined>(() => loadedView(type))
+  // A chunk that fails to load, on a flaky network, is tried again later.
+  const [attempt, setAttempt] = useState(0)
   useEffect(() => {
-    if (!View) void loadView(type).then((v) => setView(() => v))
-  }, [type, View])
+    if (View) return
+    let gone = false
+    let retry: ReturnType<typeof setTimeout> | undefined
+    loadView(type).then(
+      (v) => {
+        if (!gone) setView(() => v)
+      },
+      (e) => {
+        console.error('signagekit: chunk failed', e)
+        if (!gone) retry = setTimeout(() => setAttempt((n) => n + 1), RETRY_MS)
+      },
+    )
+    return () => {
+      gone = true
+      clearTimeout(retry)
+    }
+  }, [type, View, attempt])
   return View ? <View c={c as never} data={data} /> : null
 }
 

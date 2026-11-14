@@ -23,15 +23,21 @@ interface Args {
   flags: Record<string, string | true>
 }
 
-/** Splits `--name value` and `--name` flags from file paths. */
+/** Splits `--name value`, `--name=value` and `--name` flags from file paths. */
 export function parseArgs(argv: string[]): Args {
   const files: string[] = []
   const flags: Args['flags'] = {}
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
-    if (!a.startsWith('--')) files.push(a)
-    else if (BOOLEAN.has(a.slice(2))) flags[a.slice(2)] = true
-    else flags[a.slice(2)] = argv[++i] ?? ''
+    if (!a.startsWith('--')) {
+      files.push(a)
+      continue
+    }
+    const eq = a.indexOf('=')
+    const name = eq < 0 ? a.slice(2) : a.slice(2, eq)
+    if (eq >= 0) flags[name] = a.slice(eq + 1)
+    else if (BOOLEAN.has(name)) flags[name] = true
+    else flags[name] = argv[++i] ?? ''
   }
   return { files, flags }
 }
@@ -81,6 +87,14 @@ export async function run(argv: string[]): Promise<number> {
     console.error(USAGE)
     return 2
   }
-  const read = (p: string) => readFileSync(p, 'utf8')
-  return handler(read(files[0]), files[1] ? read(files[1]) : undefined, flags)
+  let layout: string
+  let data: string | undefined
+  try {
+    layout = readFileSync(files[0], 'utf8')
+    data = files[1] ? readFileSync(files[1], 'utf8') : undefined
+  } catch (e) {
+    console.error(`signagekit: ${(e as Error).message}`)
+    return 2
+  }
+  return handler(layout, data, flags)
 }

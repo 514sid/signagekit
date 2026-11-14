@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Data values that match a built-in object key, like `state: constructor` or `trend: toString`, are treated as unknown instead of crashing the screen. The same goes for component types and area names.
+- An unknown property inside an alert, a list item or a clock entry is a warning and is ignored. It no longer drops the whole alert or zone.
+- `timeZone`, `locale` and `now` belong to each `mount()`, so screens on one page no longer overwrite each other's. A fixed `now` stays fixed while another screen's clock ticks.
+- Charts redraw when their zone changes size, like after the screen rotates.
+- A component chunk that fails to load is tried again after 30 seconds, instead of leaving its zone blank until the page reloads. Chart and QR libraries are fetched again on their next draw.
+- Schedule entries that share a start time are all shown as on now. An `HH:MM` entry is no longer ended by an entry with a full date.
+- Numbers with a leading zero, like ticket `042`, are shown as written. Queue tickets are never reformatted.
+- Bars drop empty items before applying `limit`.
+- `signagekit` accepts `--name=value` flags, and a missing file is a one-line error.
+
 ## 0.0.1
 
 First release.
