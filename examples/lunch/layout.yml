@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# yaml-language-server: $schema=https://signagekit.514sid.com/schema.json
 # A canteen screen: the menu, wait time, free seats and notices. Designed for
 # landscape; on a portrait screen the zones move onto rows of their own.
 colors:

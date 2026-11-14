@@ -3,7 +3,7 @@
 // isn't held to the length limits on query strings. Uses the compression
 // streams built into browsers and Node 18+, so it adds no dependency.
 
-export const PREVIEW_BASE = 'https://signagekit.pages.dev/preview/'
+export const PREVIEW_BASE = 'https://signagekit.514sid.com/preview/'
 
 export interface PreviewOptions {
   /** `screen` (default), `sizes`, `schemes` or `edit`. */

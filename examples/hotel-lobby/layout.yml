@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# yaml-language-server: $schema=https://signagekit.514sid.com/schema.json
 # Sparse lobby screen: four zones, light scheme, landscape.
 colors:
   scheme: light

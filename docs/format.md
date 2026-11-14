@@ -7,7 +7,7 @@ A screen is one document, JSON or YAML, plus an optional data object. The docume
 ## Example
 
 ```yaml
-# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# yaml-language-server: $schema=https://signagekit.514sid.com/schema.json
 colors:
   scheme: dark
   accent: '#2563eb'

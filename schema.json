@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://unpkg.com/@514sid/signagekit/schema.json",
+  "$id": "https://signagekit.514sid.com/schema.json",
   "title": "signagekit screen",
   "description": "A signagekit screen document, written as JSON or YAML. The screen is a grid of named zones on a canvas that is 1080 px on its short side and follows the screen's shape; each zone holds one component. Text sizes itself to fit its zone. Values that change go in a separate data object and are referenced with {\"bind\": \"/path\"}. Text sizes itself consistently across the screen: list-like components share one readable body size, figures in a row share a size, and anything that doesn't fit at a readable size drops rows with \"+N more\" or pages, instead of shrinking. Missing values show a dash.",
   "type": "object",

@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# yaml-language-server: $schema=https://signagekit.514sid.com/schema.json
 # Air quality on an office floor, for the screen by the kitchen.
 version: 1
 colors:

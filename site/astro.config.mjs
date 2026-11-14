@@ -5,7 +5,7 @@ import { defineConfig } from 'astro/config'
 const lib = (p) => fileURLToPath(new URL(`../src/${p}`, import.meta.url))
 
 export default defineConfig({
-  site: 'https://signagekit.pages.dev',
+  site: 'https://signagekit.514sid.com',
   trailingSlash: 'ignore',
   output: 'static',
   // Agents screenshot the dev server too; the toolbar would be in every shot.

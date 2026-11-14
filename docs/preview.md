@@ -6,7 +6,7 @@ The preview page renders a screen from its URL, so a person can share a screen a
 npx @514sid/signagekit url screen.layout.yml screen.data.yml --mode sizes
 ```
 
-prints a link like `https://signagekit.pages.dev/preview/?mode=sizes#s=rVXfb9s2...`. The layout and data are compressed into the part after `#s=`, which browsers never send to a server.
+prints a link like `https://signagekit.514sid.com/preview/?mode=sizes#s=rVXfb9s2...`. The layout and data are compressed into the part after `#s=`, which browsers never send to a server.
 
 ## Modes
 

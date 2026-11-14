@@ -2,6 +2,8 @@
 
 A toolkit for AI agents that build digital signage screens: dashboards, menus, schedules and alerts. The agent writes a short JSON or YAML template that names the zones of a screen and what goes in each. signagekit validates it, lays it out for any display and sizes every piece of text, and gives the agent a checker and a preview link to see its work. After that, updating a screen means writing new data, not touching the template.
 
+Docs, components, examples and the preview tool: https://signagekit.514sid.com
+
 ```yaml
 layout:
   flow:
@@ -45,7 +47,7 @@ The screen fills the element you give it. [docs/api.md](docs/api.md) covers ever
 [docs/format.md](docs/format.md) is the full reference: layouts, the 21 components, binding data, how text is sized, states and thresholds, charts, alerts, icons and colors. [schema.json](schema.json) has every property; reference it from a YAML file to get autocomplete in editors that read JSON Schema:
 
 ```yaml
-# yaml-language-server: $schema=https://unpkg.com/@514sid/signagekit/schema.json
+# yaml-language-server: $schema=https://signagekit.514sid.com/schema.json
 ```
 
 ## With AI assistants
@@ -84,13 +86,7 @@ bun run site:dev
 bun run site:build
 ```
 
-It's set up for Cloudflare Pages. Connect the repository with the build command `bun install && bun run site:build` and the output directory `site/dist`, or deploy a local build with Wrangler:
-
-```bash
-bunx wrangler pages deploy
-```
-
-[wrangler.toml](wrangler.toml) names the project `signagekit`, and `previewUrl()` and `signagekit url` link to `https://signagekit.pages.dev/preview/` by default. If the site ends up on another address, change `PREVIEW_BASE` in [src/share.ts](src/share.ts).
+It's live at https://signagekit.514sid.com, deployed by Cloudflare Pages from this repository: build command `npm run site:build`, output directory `site/dist`, root directory left empty, and `NODE_VERSION` set to 22.23.4 or newer for Astro. `previewUrl()` and `signagekit url` link to its preview page by default; pass `base` or `--base` to link to a copy hosted elsewhere.
 
 ## License
 

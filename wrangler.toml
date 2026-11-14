@@ -1,4 +1,4 @@
-# Cloudflare Pages project for the docs site. Build with `bun run site:build`.
+# Cloudflare Pages project for the docs site at https://signagekit.514sid.com.
 name = "signagekit"
 pages_build_output_dir = "site/dist"
 compatibility_date = "2026-11-01"
