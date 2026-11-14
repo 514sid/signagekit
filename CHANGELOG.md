@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.0.2
 
 - Data values that match a built-in object key, like `state: constructor` or `trend: toString`, are treated as unknown instead of crashing the screen. The same goes for component types and area names.
 - An unknown property inside an alert, a list item or a clock entry is a warning and is ignored. It no longer drops the whole alert or zone.
