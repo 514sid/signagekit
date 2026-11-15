@@ -42,6 +42,36 @@ describe('mount', () => {
     expect(reads).toBeGreaterThan(once)
   })
 
+  test('parses the same data text only once', async () => {
+    const text = JSON.stringify(lunchData)
+    const parse = JSON.parse
+    let parses = 0
+    JSON.parse = (t: string, ...rest) => {
+      if (t.trim() === text) parses++
+      return parse(t, ...rest)
+    }
+    try {
+      const root = box()
+      const screen = await mount(root, { layout: lunch, data: text })
+      await screen.update({ data: text })
+      expect(parses).toBe(1)
+      await screen.update({ data: JSON.stringify({ ...lunchData, wait: 12 }) })
+      expect(root.querySelector('.c-stat-value')!.textContent).toBe('12min')
+      await screen.update({ data: text })
+      expect(parses).toBe(2)
+      expect(root.querySelector('.c-stat-value')!.textContent).toBe('6min')
+    } finally {
+      JSON.parse = parse
+    }
+  })
+
+  test('reports bad data text every time it is sent', async () => {
+    const screen = await mount(box(), { layout: lunch, data: '{"wait": ' })
+    expect(screen.errors[0]).toStartWith('data: not valid JSON')
+    await screen.update({ data: '{"wait": ' })
+    expect(screen.errors[0]).toStartWith('data: not valid JSON')
+  })
+
   test('applies colors to its own canvas, not the page', async () => {
     const root = box()
     await mount(root, {

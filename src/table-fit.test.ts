@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { shrinkToFit } from './table-fit'
+import { shrinkToFit, tableOverflow } from './table-fit'
 
 // jsdom has no layout, so cells count as cut short above a set size.
 function table(size: number) {
@@ -51,5 +51,60 @@ describe('shrinkToFit', () => {
     const t = table(40.5)
     shrinkToFit(t, (x) => size(x) > 38)
     expect(size(t)).toBe(37.5)
+  })
+})
+
+describe('tableOverflow', () => {
+  // A fixed-width table whose text is cut short above 30 px, in a zone that
+  // holds every row.
+  function zone() {
+    document.body.innerHTML = `<div style="padding: 0"><table class="c-table has-widths" style="font-size: 40px">
+      <tbody><tr style="visibility: visible"><td style="padding: 0">Platform 12b</td></tr></tbody>
+    </table></div>`
+    const box = document.querySelector<HTMLElement>('div')!
+    Object.defineProperty(box, 'clientWidth', { value: 300 })
+    Object.defineProperty(box, 'clientHeight', { value: 500 })
+    const t = document.querySelector('table')!
+    const cell = t.querySelector('td')!
+    Object.defineProperty(cell, 'clientWidth', { value: 100 })
+    let measures = 0
+    const createRange = document.createRange.bind(document)
+    document.createRange = () => {
+      const r = createRange()
+      r.getBoundingClientRect = () => {
+        measures++
+        return {
+          width: parseFloat(t.style.fontSize) > 30 ? 200 : 50,
+        } as DOMRect
+      }
+      return r
+    }
+    return {
+      t,
+      measures: () => measures,
+      restore: () => (document.createRange = createRange),
+    }
+  }
+
+  test('measures a table again only when its rows or size change', () => {
+    const { t, measures, restore } = zone()
+    try {
+      tableOverflow(t)
+      expect(size(t)).toBe(30)
+      const first = measures()
+      expect(first).toBeGreaterThan(0)
+
+      t.style.fontSize = '40px'
+      tableOverflow(t)
+      expect(size(t)).toBe(30)
+      expect(measures()).toBe(first)
+
+      t.style.fontSize = '40px'
+      t.querySelector('td')!.textContent = 'Platform 3'
+      tableOverflow(t)
+      expect(measures()).toBeGreaterThan(first)
+    } finally {
+      restore()
+    }
   })
 })

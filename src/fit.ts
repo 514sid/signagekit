@@ -114,9 +114,7 @@ function fitOne(el: HTMLElement): void {
   const box = el.parentElement
   if (!box) return
   const [w, h] = contentBox(box)
-  // A table is measured once and paged later, so it gains nothing here.
-  if (el.dataset.kind === 'table') search(el, w, h)
-  else remembered(el, w, h, () => search(el, w, h))
+  remembered(el, w, h, () => search(el, w, h))
 }
 
 /** Finds the largest size the element fits its box at. */

@@ -54,17 +54,20 @@ async function read(
   return parseText(src, mode)
 }
 
-async function readData(
+/** Reads data text, or checks a parsed object, and reports what's wrong. */
+export async function readData(
   src: Source | undefined,
-  errors: string[],
-): Promise<Data> {
-  if (src === undefined || (typeof src === 'string' && !src.trim())) return {}
+): Promise<{ data: Data; errors: string[] }> {
+  if (src === undefined || (typeof src === 'string' && !src.trim()))
+    return { data: {}, errors: [] }
   const d = await read(src, 'data')
-  if (d.error) errors.push(`data: ${d.error}`)
-  else if (!isPlainObject(d.value))
-    errors.push('data: expected an object (a JSON object or a YAML mapping)')
-  else return d.value
-  return {}
+  if (d.error) return { data: {}, errors: [`data: ${d.error}`] }
+  if (!isPlainObject(d.value))
+    return {
+      data: {},
+      errors: ['data: expected an object (a JSON object or a YAML mapping)'],
+    }
+  return { data: d.value, errors: [] }
 }
 
 /** What checking a document finds before any data is involved. */
@@ -120,8 +123,7 @@ export async function checkData(
   data?: Source,
   options: CheckOptions = {},
 ): Promise<CheckResult> {
-  const dataErrors: string[] = []
-  const d = await readData(data, dataErrors)
+  const { data: d, errors: dataErrors } = await readData(data)
   const binds =
     layout.doc && options.checkBinds !== false
       ? missingBinds(layout.doc, d)
