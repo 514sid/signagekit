@@ -7,6 +7,7 @@ import { render } from 'preact'
 import {
   checkData,
   checkLayout,
+  readData,
   DEFAULT_ACCENT,
   type CheckResult,
   type Source,
@@ -17,6 +18,7 @@ import { fitAll } from './fit'
 import { canvasSize, toGrid } from './flow'
 import { settled } from './ready'
 import { TimeContext, type TimeOptions } from './time'
+import type { Data } from './types'
 import { preloadViews } from './views'
 
 export interface MountOptions {
@@ -128,6 +130,26 @@ function draw(
 }
 
 /**
+ * Returns a function that parses data text, remembering the text it last
+ * read cleanly: a screen often gets the same text pushed again, and parsing
+ * it again gives the same values. Objects pass through.
+ */
+function dataReader(): (src?: Source) => Promise<Source | undefined> {
+  let text: string | undefined
+  let value: Data = {}
+  return async (src) => {
+    if (typeof src !== 'string') return src
+    if (src === text) return value
+    const d = await readData(src)
+    // Text with a problem goes to the check as it is, which reports it.
+    if (d.errors.length) return src
+    text = src
+    value = d.data
+    return value
+  }
+}
+
+/**
  * Renders a screen document into `container` and resolves once it is drawn,
  * charts included. The container sets the size; the screen fills it.
  */
@@ -157,7 +179,8 @@ export async function mount(
   // The checked document, kept while only the data changes: parsing and
   // validating it again would give the same answer every time.
   let laid = await checkLayout(options.layout, opts)
-  let r = await checkData(laid, options.data, opts)
+  const parsed = dataReader()
+  let r = await checkData(laid, await parsed(options.data), opts)
   const reported: string[] = []
 
   const paint = () => draw(canvas, r, width, options, time, reported)
@@ -188,7 +211,7 @@ export async function mount(
     async update(changes) {
       if (changes.layout !== undefined)
         laid = await checkLayout(changes.layout, opts)
-      r = await checkData(laid, changes.data ?? r.data, opts)
+      r = await checkData(laid, (await parsed(changes.data)) ?? r.data, opts)
       if (changes.layout !== undefined) await preload(r)
       paint()
       await settled()

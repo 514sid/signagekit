@@ -1,4 +1,4 @@
-import { contentBox } from './measure'
+import { contentBox, fontLoads } from './measure'
 import { RANGES } from './type-scale'
 
 const sizeOf = (el: HTMLElement) => parseFloat(el.style.fontSize) || 0
@@ -67,20 +67,76 @@ export function shrinkToFit(
   at(fitsAt)
 }
 
+/** What the overflow phase last did to a table, and what it depended on. */
+interface Overflowed {
+  key: string
+  size: string
+  flex?: string
+  rowRoom: string
+  page?: number | null
+}
+const lastOverflow = new WeakMap<HTMLTableElement, Overflowed>()
+
+/**
+ * Shrinks, truncates and pages a table that overflows its zone. A table
+ * whose rows, size and box are the same as last time gets the same result
+ * without measuring again: measuring every cell is the costliest part of a
+ * data update.
+ */
 export function tableOverflow(el: HTMLElement): void {
   const [w, h] = contentBox(el.parentElement!)
   const table = el as AutoPaged
+  // Rows are all showing here (see showAllRows); the caption, which holds
+  // the page number, is left out.
+  const key = [
+    w,
+    h,
+    fontLoads(),
+    table.className,
+    table.style.fontSize,
+    table.dataset.pageRows,
+    table.tHead?.innerHTML,
+    table.tBodies[0]?.innerHTML,
+  ].join('|')
+  let done = lastOverflow.get(table)
+  if (done?.key === key) {
+    table.style.fontSize = done.size
+    if (done.flex !== undefined) table.dataset.flex = done.flex
+    if (done.rowRoom) table.style.setProperty('--row-room', done.rowRoom)
+  } else {
+    const page = overflow(table, w, h)
+    done = {
+      key,
+      size: table.style.fontSize,
+      flex: table.dataset.flex,
+      rowRoom: table.style.getPropertyValue('--row-room'),
+      page,
+    }
+    lastOverflow.set(table, done)
+  }
+  if (done.page !== undefined) table.__autoPage?.(done.page)
+}
+
+/**
+ * Measures the table and leaves it at its final size. Returns the rows per
+ * page it needs, null for all of them, or undefined when it doesn't page.
+ */
+function overflow(
+  table: AutoPaged,
+  w: number,
+  h: number,
+): number | null | undefined {
   // Fixed widths always fill the zone, so the fit can't see that cells are
   // cut short: shrink until they aren't, down to the floor, then page.
   if (table.classList.contains('has-widths')) shrinkToFit(table)
-  if (el.scrollWidth > w + 1) widestColumn(table)
-  if (!table.__autoPage) return
+  if (table.scrollWidth > w + 1) widestColumn(table)
+  if (!table.__autoPage) return undefined
   // Rows are all showing here (see showAllRows), so this is the same answer
   // whatever the last pass decided.
   const rows = Array.from(table.tBodies[0]?.rows ?? []).filter(
     (r) => r.style.visibility === 'visible',
   )
-  if (!rows.length) return
+  if (!rows.length) return undefined
   const head = table.tHead?.offsetHeight ?? 0
   const heights = rows.map((r) => r.offsetHeight)
   const used = head + heights.reduce((a, b) => a + b, 0)
@@ -89,21 +145,23 @@ export function tableOverflow(el: HTMLElement): void {
   const all = table.tBodies[0]?.rows.length ?? 0
   const room = all > rows.length ? h - pager : h
   if (used <= room + 1) {
-    table.__autoPage(null)
     // A table held back by its width leaves height over: rows take some of
     // it as padding, up to half a row each, so the zone looks filled
     // without rows floating far apart.
-    const extra = Math.min((room - used - 4) / heights.length, sizeOf(el) * 0.9)
+    const extra = Math.min(
+      (room - used - 4) / heights.length,
+      sizeOf(table) * 0.9,
+    )
     if (extra > 1) {
       table.style.setProperty('--row-room', `${extra / 2}px`)
       // Rounding can still tip it over; then the rows keep their own height.
       if (table.offsetHeight > room) table.style.removeProperty('--row-room')
     }
-    return
+    return null
   }
   // Doesn't fit: page, leaving room for the "1 / 2" line under the rows.
   const rowH = Math.max(...heights, 1)
-  table.__autoPage(Math.max(1, Math.floor((h - head - pager) / rowH)))
+  return Math.max(1, Math.floor((h - head - pager) / rowH))
 }
 
 /**
