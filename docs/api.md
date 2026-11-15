@@ -24,12 +24,12 @@ Map `yaml` to jsDelivr's bundled `+esm` build, as below. The package's own `brow
 ```html
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.0.2/dist/style.css"
+  href="https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.0.3/dist/style.css"
 />
 <script type="importmap">
   {
     "imports": {
-      "@514sid/signagekit": "https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.0.2/dist/index.js",
+      "@514sid/signagekit": "https://cdn.jsdelivr.net/npm/@514sid/signagekit@0.0.3/dist/index.js",
       "preact": "https://cdn.jsdelivr.net/npm/preact@10.27.2/dist/preact.module.js",
       "preact/hooks": "https://cdn.jsdelivr.net/npm/preact@10.27.2/hooks/dist/hooks.module.js",
       "preact/jsx-runtime": "https://cdn.jsdelivr.net/npm/preact@10.27.2/jsx-runtime/dist/jsxRuntime.module.js",

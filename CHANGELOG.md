@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.0.3
+
+- A screen is fitted once when it mounts, instead of twice. Mounting does about 65% fewer layouts across the examples.
+- A data update refits only what changed. Text, stats, clocks, cycles and tables keep their size while their content and zone stay the same, so `update()` takes less than a third of the time it did on the examples.
+- The same data text pushed again isn't parsed again.
+- Fixed-width tables find their size in a few checks instead of shrinking 1 px at a time.
+- A stacked zone keeps the density it mounted with, so a neighbour's text no longer changes size on the first update.
+- Chart and QR screens fetch uPlot and uqr along with their component, one round trip sooner.
+- The import map in the docs maps `yaml` to jsDelivr's bundled `+esm` build. The unbundled build loads about 70 modules one level at a time; YAML screens are ready about three times sooner with the bundled one.
+- `bun run bench` measures mount, refit, update and load time in Chrome.
+
 ## 0.0.2
 
 - Data values that match a built-in object key, like `state: constructor` or `trend: toString`, are treated as unknown instead of crashing the screen. The same goes for component types and area names.
