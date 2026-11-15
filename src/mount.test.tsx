@@ -27,6 +27,21 @@ describe('mount', () => {
     expect(root.querySelector('.c-stat-value')!.textContent).toBe('12min')
   })
 
+  test('checks the layout again only when it changes', async () => {
+    // Counts reads of the document, which parsing and validating it make.
+    let reads = 0
+    const layout = new Proxy(lunch, {
+      get: (t, k, r) => (reads++, Reflect.get(t, k, r)),
+    })
+    const screen = await mount(box(), { layout, data: lunchData })
+    const once = reads
+    expect(once).toBeGreaterThan(0)
+    await screen.update({ data: { ...lunchData, wait: 12 } })
+    expect(reads).toBe(once)
+    await screen.update({ layout, data: lunchData })
+    expect(reads).toBeGreaterThan(once)
+  })
+
   test('applies colors to its own canvas, not the page', async () => {
     const root = box()
     await mount(root, {
@@ -113,5 +128,39 @@ describe('mount with a fixed time', () => {
     await first.update({ data: {} })
     expect(a.textContent).toContain('09:30')
     expect(b.textContent).toContain('18:30')
+  })
+
+  test('fits again only when the container changes size', async () => {
+    const g = globalThis as { ResizeObserver?: unknown }
+    let report = () => {}
+    g.ResizeObserver = class {
+      constructor(fn: () => void) {
+        report = fn
+      }
+      observe() {}
+      disconnect() {}
+    }
+    // Every fit pass starts by finding the elements to fit.
+    const proto = window.Element.prototype
+    const find = proto.querySelectorAll
+    let passes = 0
+    proto.querySelectorAll = function (this: Element, sel: string) {
+      if (sel === '[data-fit]') passes++
+      return find.call(this, sel)
+    } as typeof find
+    try {
+      const root = box()
+      await mount(root, { layout: lunch, data: lunchData })
+      expect(passes).toBe(1)
+      // An observer reports once when it starts watching, at the same size.
+      report()
+      expect(passes).toBe(1)
+      Object.defineProperty(root, 'clientWidth', { value: 1080 })
+      report()
+      expect(passes).toBe(2)
+    } finally {
+      proto.querySelectorAll = find
+      delete g.ResizeObserver
+    }
   })
 })

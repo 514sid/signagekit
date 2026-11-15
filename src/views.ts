@@ -25,6 +25,14 @@ const LOADERS = {
 
 export type LazyType = keyof typeof LOADERS
 
+// Libraries a view imports only when it draws. Fetching them alongside the
+// view's chunk saves the first draw a second round trip. A failure here is
+// ignored: the view imports the library again itself and handles it there.
+const LIBRARIES: Partial<Record<LazyType, () => Promise<unknown>>> = {
+  chart: () => import('uplot'),
+  qr: () => import('uqr'),
+}
+
 export const isLazy = (t: string): t is LazyType => t in LOADERS
 
 const loaded = new Map<string, AnyView>()
@@ -73,10 +81,14 @@ export function preloadViews(doc: ScreenDoc | null | undefined): Promise<void> {
   // Icons appear in zone titles and alerts; an alert may come from data at
   // any time, so a document with one loads them up front.
   const icons = types.has('icon') || doc.alert ? [loadIcons()] : []
-  const all = Promise.all([
-    ...[...types].filter(isLazy).map(loadView),
-    ...icons,
-  ]).then(() => undefined)
+  const lazy = [...types].filter(isLazy)
+  const libraries = lazy.flatMap((t) => {
+    const load = LIBRARIES[t]
+    return load ? [load().catch(() => undefined)] : []
+  })
+  const all = Promise.all([...lazy.map(loadView), ...libraries, ...icons]).then(
+    () => undefined,
+  )
   track(all)
   return all
 }
