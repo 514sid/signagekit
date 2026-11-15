@@ -26,16 +26,53 @@ function clipped(table: HTMLTableElement): boolean {
   return cut
 }
 
+/**
+ * The largest size, at most the current one, where no cell is cut short, or
+ * the floor when none is. A check that finds a cut cell stops there, but one
+ * that passes measures every cell, so the search tries 1, 2, 4, 8 px down
+ * until the text fits, then halves the gap. Most tables fit 1 or 2 px down,
+ * which costs the same as stepping 1 px at a time; a long way down takes a
+ * few checks instead of one per px. Sizes stay whole px below the current
+ * one, as stepping gave.
+ */
+export function shrinkToFit(
+  table: HTMLTableElement,
+  cut: (t: HTMLTableElement) => boolean = clipped,
+): void {
+  const [floor] = RANGES.table
+  const size = sizeOf(table)
+  if (size <= floor || !cut(table)) return
+  const at = (down: number) => {
+    table.style.fontSize = Math.max(floor, size - down) + 'px'
+  }
+  // In px down from the current size: cutAt is known to be cut; fitsAt fits,
+  // or reaches the floor, which is used even if cut.
+  const most = Math.ceil(size - floor)
+  let cutAt = 0
+  let fitsAt = most
+  for (let down = 1; down < most; down *= 2) {
+    at(down)
+    if (!cut(table)) {
+      fitsAt = down
+      break
+    }
+    cutAt = down
+  }
+  while (fitsAt - cutAt > 1) {
+    const mid = (cutAt + fitsAt) >> 1
+    at(mid)
+    if (cut(table)) cutAt = mid
+    else fitsAt = mid
+  }
+  at(fitsAt)
+}
+
 export function tableOverflow(el: HTMLElement): void {
   const [w, h] = contentBox(el.parentElement!)
   const table = el as AutoPaged
   // Fixed widths always fill the zone, so the fit can't see that cells are
   // cut short: shrink until they aren't, down to the floor, then page.
-  if (table.classList.contains('has-widths')) {
-    const [floor] = RANGES.table
-    let size = sizeOf(el)
-    while (size > floor && clipped(table)) el.style.fontSize = --size + 'px'
-  }
+  if (table.classList.contains('has-widths')) shrinkToFit(table)
   if (el.scrollWidth > w + 1) widestColumn(table)
   if (!table.__autoPage) return
   // Rows are all showing here (see showAllRows), so this is the same answer

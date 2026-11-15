@@ -67,34 +67,78 @@ async function readData(
   return {}
 }
 
+/** What checking a document finds before any data is involved. */
+export interface LayoutCheck {
+  doc: ScreenDoc | null
+  errors: string[]
+  /** Upgrade notes and validation warnings. */
+  warnings: string[]
+  /** Kept apart so bind warnings can go between, where they always were. */
+  contrast: string[]
+}
+
+/**
+ * Parses, upgrades and validates a document and checks its colors. None of
+ * this depends on the data, so a screen that only gets new data keeps the
+ * result. Never throws.
+ */
+export async function checkLayout(
+  layout: Source,
+  options: CheckOptions = {},
+): Promise<LayoutCheck> {
+  const l = await read(layout, 'layout')
+  if (l.error)
+    return {
+      doc: null,
+      errors: [`layout: ${l.error}`],
+      warnings: [],
+      contrast: [],
+    }
+  // Older formats are upgraded first; only the steps needed are loaded.
+  const up = await upgrade(l.value)
+  const v = validate(up.doc)
+  const contrast = v.doc
+    ? contrastWarnings(
+        resolveColors(
+          { ...v.doc.colors, ...options.colors },
+          options.scheme ?? 'dark',
+          options.accent ?? DEFAULT_ACCENT,
+        ),
+      )
+    : []
+  return {
+    doc: v.doc,
+    errors: v.errors,
+    warnings: [...up.notes, ...v.warnings],
+    contrast,
+  }
+}
+
+/** Reads the data and checks it against a document already checked. */
+export async function checkData(
+  layout: LayoutCheck,
+  data?: Source,
+  options: CheckOptions = {},
+): Promise<CheckResult> {
+  const dataErrors: string[] = []
+  const d = await readData(data, dataErrors)
+  const binds =
+    layout.doc && options.checkBinds !== false
+      ? missingBinds(layout.doc, d)
+      : []
+  return {
+    doc: layout.doc,
+    data: d,
+    errors: [...layout.errors, ...dataErrors],
+    warnings: [...layout.warnings, ...binds, ...layout.contrast],
+  }
+}
+
 /** Parses, validates and checks a document and its data. Never throws. */
 export async function check(
   layout: Source,
   data?: Source,
   options: CheckOptions = {},
 ): Promise<CheckResult> {
-  const dataErrors: string[] = []
-  const d = await readData(data, dataErrors)
-  const l = await read(layout, 'layout')
-  if (l.error)
-    return {
-      doc: null,
-      data: d,
-      errors: [`layout: ${l.error}`, ...dataErrors],
-      warnings: [],
-    }
-  // Older formats are upgraded first; only the steps needed are loaded.
-  const up = await upgrade(l.value)
-  const v = validate(up.doc)
-  const warnings = [...up.notes, ...v.warnings]
-  if (v.doc) {
-    if (options.checkBinds !== false) warnings.push(...missingBinds(v.doc, d))
-    const palette = resolveColors(
-      { ...v.doc.colors, ...options.colors },
-      options.scheme ?? 'dark',
-      options.accent ?? DEFAULT_ACCENT,
-    )
-    warnings.push(...contrastWarnings(palette))
-  }
-  return { doc: v.doc, data: d, errors: [...v.errors, ...dataErrors], warnings }
+  return checkData(await checkLayout(layout, options), data, options)
 }

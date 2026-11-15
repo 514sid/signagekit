@@ -8,7 +8,6 @@ import { isIcon } from './icons'
 import { Table } from './table'
 import { AlertView, useAlert } from './alert'
 import { loadedView, loadView, type AnyView, type LazyType } from './views'
-import { fitMessages } from './fit'
 import { DASH, Empty } from './empty'
 import {
   formatClock,
@@ -122,9 +121,8 @@ function Cycle({ c, data }: Props<Of<'cycle'>>) {
     const el = ref.current as
       (HTMLDivElement & { __messages?: string[] }) | null
     if (!el) return
-    // The layout pass refits cycles with the rest of the screen.
+    // The layout pass that follows every render sizes the cycle to these.
     el.__messages = messages
-    fitMessages(el, messages)
   }, [key])
   useEffect(() => {
     if (messages.length < 2) return

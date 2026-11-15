@@ -19,6 +19,8 @@ await screen.update({ data: { menu: [...], wait: 12 } })
 
 Without a bundler, load it as a module with an import map. The YAML parser, uPlot and the QR encoder only download when a screen needs them.
 
+Map `yaml` to jsDelivr's bundled `+esm` build, as below. The package's own `browser/index.js` is about 70 separate modules that load one level at a time, which adds over a second before a YAML screen shows on a slow network.
+
 ```html
 <link
   rel="stylesheet"
@@ -33,7 +35,7 @@ Without a bundler, load it as a module with an import map. The YAML parser, uPlo
       "preact/jsx-runtime": "https://cdn.jsdelivr.net/npm/preact@10.27.2/jsx-runtime/dist/jsxRuntime.module.js",
       "uplot": "https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.esm.js",
       "uqr": "https://cdn.jsdelivr.net/npm/uqr@0.1.3/dist/index.mjs",
-      "yaml": "https://cdn.jsdelivr.net/npm/yaml@2.9.1/browser/index.js"
+      "yaml": "https://cdn.jsdelivr.net/npm/yaml@2.9.1/+esm"
     }
   }
 </script>

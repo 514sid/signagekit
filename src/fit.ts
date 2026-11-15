@@ -1,7 +1,8 @@
 import { sizeQr } from './qr-size'
 import { alignTrends, fitTrend } from './trend-fit'
 import { fitMessages } from './cycle-fit'
-import { contentBox, PROBE } from './measure'
+import { contentBox, holdBoxes, PROBE } from './measure'
+import { remembered } from './fit-memo'
 import { showAllRows, tableOverflow } from './table-fit'
 
 export { fitMessages }
@@ -84,6 +85,11 @@ function reset(root: ParentNode): void {
 }
 
 function density(root: ParentNode): void {
+  // Density sets padding, and stacked cells share their zone after padding,
+  // so a cell's height depends on the density of the cells beside it. Every
+  // pass measures from none, as the first did, so each gives the same answer.
+  const cells = Array.from(root.querySelectorAll<HTMLElement>('.cell'))
+  cells.forEach((c) => delete c.dataset.density)
   // A row of three or more parts too narrow to read wraps into two columns,
   // but only when the stack is tall enough for two rows. Wrap first, so the
   // zones below are measured at their final size.
@@ -92,7 +98,6 @@ function density(root: ParentNode): void {
     const narrow = n >= 3 && s.clientWidth / n < 300
     s.classList.toggle('wrapped', narrow && s.clientHeight >= 300)
   })
-  const cells = Array.from(root.querySelectorAll<HTMLElement>('.cell'))
   const sizes = cells.map((c) => [c.clientWidth, c.clientHeight])
   cells.forEach((c, i) => {
     const [w, h] = sizes[i]
@@ -108,9 +113,16 @@ function density(root: ParentNode): void {
 function fitOne(el: HTMLElement): void {
   const box = el.parentElement
   if (!box) return
+  const [w, h] = contentBox(box)
+  // A table is measured once and paged later, so it gains nothing here.
+  if (el.dataset.kind === 'table') search(el, w, h)
+  else remembered(el, w, h, () => search(el, w, h))
+}
+
+/** Finds the largest size the element fits its box at. */
+function search(el: HTMLElement, w: number, h: number): void {
   const [min, max] = RANGES[kindOf(el)] ?? [22, 160]
   const clamp = (n: number) => Math.max(min, Math.min(max, Math.floor(n)))
-  const [w, h] = contentBox(box)
 
   el.style.fontSize = PROBE + 'px'
   const rw = w / el.scrollWidth
@@ -133,8 +145,9 @@ function fitOne(el: HTMLElement): void {
       el.style.fontSize = PROBE + 'px'
       const r = Math.min(w / el.scrollWidth, h / el.scrollHeight)
       let size = clamp(PROBE * r)
-      while (size > min && !fits(el, size, w, h)) size--
-      if (fits(el, size, w, h)) return size
+      let ok = fits(el, size, w, h)
+      while (!ok && size > min) ok = fits(el, --size, w, h)
+      if (ok) return size
       return size * Math.min(w / el.scrollWidth, h / el.scrollHeight)
     }
     if (!fitTrend(el, fitLine, min))
@@ -310,6 +323,16 @@ export function fitAll(root: ParentNode): void {
   reset(root)
   density(root)
   const restoreRows = showAllRows(root)
+  // Zones are contained to a fixed size, and nothing in them grows with its
+  // text (stacked cells share the zone evenly), so their boxes stay put while
+  // text sizes change. An alert's box doesn't: it shares the screen with the
+  // alert's title, which is fitted too.
+  const boxes = new Set<HTMLElement>()
+  root.querySelectorAll<HTMLElement>('[data-fit], .c-cycle').forEach((el) => {
+    const box = el.parentElement
+    if (box?.closest('.zone')) boxes.add(box)
+  })
+  const release = holdBoxes([...boxes])
   const fitted: HTMLElement[] = []
   const pins = new Set<HTMLElement>()
   for (const el of Array.from(
@@ -335,5 +358,6 @@ export function fitAll(root: ParentNode): void {
   overflow(fitted)
   restoreRows()
   equalHeights(root, pins)
+  release()
   sizeQr(root)
 }

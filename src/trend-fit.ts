@@ -6,6 +6,8 @@
 
 const TREND_BELOW = 'trend-below'
 const LABEL_BESIDE = 'label-beside'
+/** The classes an arrangement sets; the fit pass chooses them. */
+export const ARRANGEMENT_CLASSES = [TREND_BELOW, LABEL_BESIDE]
 
 /** An arrangement: [trend under the value, label beside the value]. */
 type Arrangement = readonly [boolean, boolean]

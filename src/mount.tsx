@@ -4,7 +4,13 @@
 // screen of a given shape.
 
 import { render } from 'preact'
-import { check, DEFAULT_ACCENT, type CheckResult, type Source } from './check'
+import {
+  checkData,
+  checkLayout,
+  DEFAULT_ACCENT,
+  type CheckResult,
+  type Source,
+} from './check'
 import { applyColors, resolveColors, type Colors, type Scheme } from './colors'
 import { Problems, Screen } from './components'
 import { fitAll } from './fit'
@@ -143,8 +149,15 @@ export async function mount(
   }
   const canvas = makeCanvas(container)
   let width = scale(container, canvas)
-  let layout = options.layout
-  let r = await check(layout, options.data, opts)
+  // The container size the screen was last fitted to. A ResizeObserver
+  // reports once as soon as it starts watching; at the same size that would
+  // fit the whole screen a second time for nothing.
+  const sizeOf = () => `${container.clientWidth}x${container.clientHeight}`
+  let fittedTo = sizeOf()
+  // The checked document, kept while only the data changes: parsing and
+  // validating it again would give the same answer every time.
+  let laid = await checkLayout(options.layout, opts)
+  let r = await checkData(laid, options.data, opts)
   const reported: string[] = []
 
   const paint = () => draw(canvas, r, width, options, time, reported)
@@ -157,6 +170,9 @@ export async function mount(
     typeof ResizeObserver === 'undefined'
       ? null
       : new ResizeObserver(() => {
+          const size = sizeOf()
+          if (size === fittedTo) return
+          fittedTo = size
           width = scale(container, canvas)
           paint()
         })
@@ -170,8 +186,9 @@ export async function mount(
       return r.warnings
     },
     async update(changes) {
-      if (changes.layout !== undefined) layout = changes.layout
-      r = await check(layout, changes.data ?? r.data, opts)
+      if (changes.layout !== undefined)
+        laid = await checkLayout(changes.layout, opts)
+      r = await checkData(laid, changes.data ?? r.data, opts)
       if (changes.layout !== undefined) await preload(r)
       paint()
       await settled()
